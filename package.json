@@ -1,0 +1,25 @@
+{
+  "name": "rest-in-peace",
+  "version": "0.0.1",
+  "description": "A RESTful Web Service Starter Kit",
+  "main": "index.js",
+  "scripts": {
+    "start-dev": "webpack --display-error-details --watch"
+  },
+  "author": "Thinslices",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.0",
+    "pino": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.0.35",
+    "@types/pino": "^3.0.0",
+    "json-loader": "^0.5.4",
+    "ts-loader": "^2.0.0",
+    "tslint": "^4.4.1",
+    "tslint-loader": "^3.3.0",
+    "typescript": "^2.1.5",
+    "webpack": "^1.14.0"
+  }
+}
