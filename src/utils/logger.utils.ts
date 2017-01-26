@@ -21,7 +21,7 @@ const levels = {
 }
 
 const pretty = pino.pretty({
-    formatter: (log) => {
+    formatter: (log: any) => {
         const pinoLog: IPinoLog = <any>log
 
         return `[${new Date(pinoLog.time).toISOString()}]  ${chalk.green(levels[pinoLog.level])}  ${chalk.cyan(pinoLog.msg)}`
