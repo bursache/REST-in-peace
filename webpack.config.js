@@ -47,7 +47,6 @@ module.exports = {
         process: true
     },
     tslint: {
-        failOnHint: true,
         tsConfigFile: 'tslint.json',
         formattersDirectory: 'node_modules/tslint-loader/formatters/'
     }

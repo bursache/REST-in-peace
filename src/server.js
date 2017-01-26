@@ -48,8 +48,27 @@ exports[true] =
 	"use strict";
 	const express = __webpack_require__(1);
 	const pino = __webpack_require__(2);
+	const chalk = __webpack_require__(3);
 	const serverPort = 5050;
-	const pinoInstance = pino();
+	const pretty = pino.pretty({
+	    formatter: (log) => {
+	        const pinoLog = log;
+	        const levels = {
+	            default: 'USERLVL',
+	            60: 'FATAL',
+	            50: 'ERROR',
+	            40: 'WARN',
+	            30: 'INFO',
+	            20: 'DEBUG',
+	            10: 'TRACE'
+	        };
+	        return `[${new Date(pinoLog.time).toISOString()}]  ${chalk.green(levels[pinoLog.level])}  ${chalk.cyan(pinoLog.msg)}`;
+	    }
+	});
+	pretty.pipe(process.stdout);
+	const pinoInstance = pino({
+	    safe: false,
+	}, pretty);
 	let server = express();
 	server.listen(serverPort, () => pinoInstance.info(`Server is running on port ${serverPort}...`));
 
@@ -65,6 +84,12 @@ exports[true] =
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	module.exports = require("chalk");
 
 /***/ }
 /******/ ]);
