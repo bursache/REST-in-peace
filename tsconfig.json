@@ -15,10 +15,10 @@
     "sourceMap": true
   },
   "filesGlob": [
-    "src/server.ts"
+    "src/app.ts"
   ],
   "files": [
-    "src/server.ts"
+    "src/app.ts"
   ],
   "exclude": [
     "node_modules"

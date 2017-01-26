@@ -2,9 +2,9 @@ const path = require('path')
 
 module.exports = {
     name: 'Server',
-    entry: path.join(__dirname, '/src/server.ts'),
+    entry: path.join(__dirname, '/src/app.ts'),
     output: {
-        filename: path.join(__dirname, '/src/server.js'),
+        filename: path.join(__dirname, '/src/app.js'),
         library: true,
         libraryTarget: 'commonjs'
     },
@@ -47,7 +47,7 @@ module.exports = {
         process: true
     },
     tslint: {
-        failOnHint: true,
+        //failOnHint: true,
         tsConfigFile: 'tslint.json',
         formattersDirectory: 'node_modules/tslint-loader/formatters/'
     }
