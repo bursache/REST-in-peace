@@ -1,0 +1,9 @@
+{
+  "modern": true,
+  "appname": "none",
+  "cee": false,
+  "facility": 0,
+  "includeProperties": ["time", "msg"],
+  "messageOnly": false,
+  "tz": "Etc/UTC"
+}
