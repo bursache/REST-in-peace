@@ -1,0 +1,8 @@
+{
+    "BadRequest": {
+        "errorMessage": "Opsss... Bad request"
+    },
+    "InvalidCredentials": {
+        "errorMessage": "Invalidcredentials"
+    }
+}

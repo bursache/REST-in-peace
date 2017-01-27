@@ -46,8 +46,28 @@ exports[true] =
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	const steed = __webpack_require__(8);
 	const httpServer_1 = __webpack_require__(1);
-	httpServer_1.initializeHTTPServer();
+	const error_utils_1 = __webpack_require__(3);
+	const logger_utils_1 = __webpack_require__(5);
+	const initGlobalUtils = (callback) => {
+	    const restGlobal = global;
+	    restGlobal.errorUtil = error_utils_1.default;
+	    restGlobal.loggerUtil = logger_utils_1.default;
+	    callback();
+	};
+	const initServer = (callback) => {
+	    httpServer_1.initializeHTTPServer();
+	    callback();
+	};
+	steed.waterfall([
+	    initGlobalUtils,
+	    initServer
+	], (err) => {
+	    if (err) {
+	        global.loggerUtil().Error(err);
+	    }
+	});
 
 
 /***/ },
@@ -56,11 +76,10 @@ exports[true] =
 
 	"use strict";
 	const express = __webpack_require__(2);
-	const logger_utils_1 = __webpack_require__(3);
 	const serverPort = 5050;
 	let server = express();
 	function initializeHTTPServer() {
-	    server.listen(serverPort, () => logger_utils_1.default.info(`Server is running on port ${serverPort}...`));
+	    server.listen(serverPort, () => global.loggerUtil().info(`Server is running on port ${serverPort}...`));
 	}
 	exports.initializeHTTPServer = initializeHTTPServer;
 
@@ -76,8 +95,32 @@ exports[true] =
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(4);
-	const chalk = __webpack_require__(5);
+	const errors = __webpack_require__(4);
+	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = errorUtil;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	module.exports = {
+		"BadRequest": {
+			"errorMessage": "Opsss... Bad request"
+		},
+		"InvalidCredentials": {
+			"errorMessage": "Invalidcredentials"
+		}
+	};
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const pino = __webpack_require__(6);
+	const chalk = __webpack_require__(7);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -87,31 +130,47 @@ exports[true] =
 	    20: 'DEBUG',
 	    10: 'TRACE'
 	};
+	const echoLevel = (level) => {
+	    switch (level) {
+	        case 30:
+	            return chalk.green(levels[level]);
+	        case 50:
+	            return chalk.red(levels[level]);
+	        default:
+	            return chalk.green(levels[level]);
+	    }
+	};
 	const pretty = pino.pretty({
 	    formatter: (log) => {
 	        const pinoLog = log;
-	        return `[${new Date(pinoLog.time).toISOString()}]  ${chalk.green(levels[pinoLog.level])}  ${chalk.cyan(pinoLog.msg)}`;
+	        return `[${new Date(pinoLog.time).toISOString()}]  ${echoLevel(pinoLog.level)}  ${chalk.cyan(pinoLog.msg)}`;
 	    }
 	});
 	pretty.pipe(process.stdout);
-	const logger = pino({
+	const loggerUtil = () => (pino({
 	    safe: false,
-	}, pretty);
+	}, pretty));
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = logger;
+	exports.default = loggerUtil;
 
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	module.exports = require("steed");
 
 /***/ }
 /******/ ]);

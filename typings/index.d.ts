@@ -1,0 +1,1 @@
+/// <reference path="REST-in-peace/index.d.ts" />
