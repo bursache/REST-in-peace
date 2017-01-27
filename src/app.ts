@@ -1,11 +1,12 @@
 import * as steed from 'steed'
 
-import { initializeHTTPServer } from './infrastructure/httpServer'
+import initializeHTTPServer from './infrastructure/httpServer'
+import initializeDatabase from './infrastructure/database/mongoConnetor'
 
 import errorUtil from './utils/error.utils'
 import loggerUtil from './utils/logger.utils'
 
-const initGlobalUtils = (callback: Function) => {
+const initializeGlobalUtils = (callback: Function) => {
     const restGlobal = (<IGlobal>global)
 
     restGlobal.errorUtil = errorUtil
@@ -14,15 +15,30 @@ const initGlobalUtils = (callback: Function) => {
     callback()
 }
 
-const initServer = (callback: Function) => {
-    initializeHTTPServer()
+const connectToDatabase = async (callback: Function) => {
+    try {
+        await initializeDatabase()
 
-    callback()
+        callback()
+    } catch (err) {
+        callback(err)
+    }
+}
+
+const initializeServer = async (callback: Function) => {
+    try {
+        await initializeHTTPServer()
+
+        callback()
+    } catch (err) {
+        callback()
+    }
 }
 
 steed.waterfall([
-    initGlobalUtils,
-    initServer
+    initializeGlobalUtils,
+    connectToDatabase,
+    initializeServer
 ], (err: Error) => {
     if (err) {
         (<IGlobal>global).loggerUtil().Error(err)

@@ -1,8 +1,16 @@
 import * as express from 'express'
 
 const serverPort = 5050
-let server = express()
+const server = express()
 
-export function initializeHTTPServer() {
-    server.listen(serverPort, () => (<IGlobal>global).loggerUtil().info(`Server is running on port ${serverPort}...`))
+const initializeHTTPServer = () => {
+    return new Promise((resolve: Function, reject: Function) => {
+        server.listen(serverPort, () => {
+            (<IGlobal>global).loggerUtil().info(`Server is running on port ${serverPort}`)
+
+            resolve()
+        })
+    })
 }
+
+export default initializeHTTPServer
