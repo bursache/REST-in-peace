@@ -1,8 +1,6 @@
-import { Request } from 'express-serve-static-core'
-import { Response } from 'express-serve-static-core'
-import { NextFunction } from 'express-serve-static-core'
+import { Request, Response, NextFunction } from 'express-serve-static-core'
 
-export function allowCrossDomain(req: any, res: Response, next: NextFunction) {
+const allowCrossDomain = (req: any, res: Response, next: NextFunction) => {
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*')
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,HEAD,DELETE,OPTIONS')
     res.header('Access-Control-Allow-Headers', 'content-Type,x-requested-with,authorization')
@@ -15,7 +13,7 @@ export function allowCrossDomain(req: any, res: Response, next: NextFunction) {
     }
 }
 
-export function logRequest(req: any, res: Response, next: NextFunction) {
+const logRequest = (req: any, res: Response, next: NextFunction) => {
     if (req.method !== 'OPTIONS') {
         req.startTime = Date.now()
 
@@ -35,3 +33,5 @@ export function logRequest(req: any, res: Response, next: NextFunction) {
         next()
     }
 }
+
+export {allowCrossDomain, logRequest}
