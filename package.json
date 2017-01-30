@@ -6,6 +6,10 @@
   "scripts": {
     "start-dev": "webpack --display-error-details --watch"
   },
+  "engines" : { 
+    "node" : ">=6.9.0", 
+    "npm": ">=3.10.8"
+  } ,
   "author": "Thinslices",
   "license": "ISC",
   "dependencies": {
