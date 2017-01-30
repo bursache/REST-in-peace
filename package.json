@@ -4,12 +4,13 @@
   "description": "A RESTful Web Service Starter Kit",
   "main": "index.js",
   "scripts": {
-    "start-dev": "webpack --display-error-details --watch"
+    "start-dev": "webpack --display-error-details --watch",
+    "test": "mocha -R nyan"
   },
-  "engines" : { 
-    "node" : ">=6.9.0", 
+  "engines": {
+    "node": ">=6.9.0",
     "npm": ">=3.10.8"
-  } ,
+  },
   "author": "Thinslices",
   "license": "ISC",
   "dependencies": {
@@ -32,6 +33,8 @@
     "@types/node": "^7.0.4",
     "@types/pino": "^3.0.0",
     "json-loader": "^0.5.4",
+    "mocha": "^3.2.0",
+    "query-string": "^4.3.1",
     "ts-loader": "^2.0.0",
     "tslint": "^4.4.1",
     "tslint-loader": "^3.3.0",
