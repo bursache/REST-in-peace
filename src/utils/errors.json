@@ -3,6 +3,9 @@
         "errorMessage": "Opsss... Bad request"
     },
     "InvalidCredentials": {
-        "errorMessage": "Invalidcredentials"
+        "errorMessage": "Invalid credentials"
+    },
+    "MissingData": {
+        "errorMessage": "Some data is missing"
     }
 }

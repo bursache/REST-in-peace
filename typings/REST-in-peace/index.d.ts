@@ -13,8 +13,9 @@ interface IHTTPResponse {
     payload?: any
 }
 
+
 interface IIdentity {
-    profile: {
+    profile?: {
         name:{
             first: string
             last: string

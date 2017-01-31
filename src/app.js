@@ -56,10 +56,10 @@ exports[true] =
 	};
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
-	const mongoConnetor_1 = __webpack_require__(7);
-	const error_util_1 = __webpack_require__(10);
-	const logger_util_1 = __webpack_require__(12);
-	const httpResponse_util_1 = __webpack_require__(15);
+	const mongoConnetor_1 = __webpack_require__(12);
+	const error_util_1 = __webpack_require__(14);
+	const logger_util_1 = __webpack_require__(16);
+	const httpResponse_util_1 = __webpack_require__(19);
 	const initializeGlobalUtils = (callback) => {
 	    const restGlobal = global;
 	    restGlobal.errorUtil = error_util_1.default;
@@ -186,11 +186,10 @@ exports[true] =
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
+	const put_handler_1 = __webpack_require__(7);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
-	routes.put('/user', (req, res) => {
-	    return res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }));
-	});
+	routes.put('/user', (req, res) => put_handler_1.putHandler(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = routes;
 
@@ -200,14 +199,164 @@ exports[true] =
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongoose = __webpack_require__(8);
-	const bluebird = __webpack_require__(9);
-	const mongoURL = 'mongodb://localhost:27017/REST-in-peace';
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
+	const steed = __webpack_require__(1);
+	const identityCreation_workflow_1 = __webpack_require__(8);
+	const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\.,;:\\s@\"]+)*)',
+	    '|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.',
+	    '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
+	    '[a-zA-Z]{2,}))$'].join(''));
+	const isValidEmail = (email) => emailPattern.test(email);
+	exports.validateRequestData = (data) => (data.email && data.password && isValidEmail(data.email) && data.password.length > 6);
+	exports.putHandler = (req, res) => {
+	    const requestData = req.body;
+	    const validateData = (callback) => {
+	        if (!exports.validateRequestData(requestData)) {
+	            return callback(global.errorUtil('MissingData'));
+	        }
+	        callback();
+	    };
+	    const createIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const user = yield identityCreation_workflow_1.createIdentityWorklow(requestData);
+	            callback(null, user);
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
+	    steed.waterfall([
+	        validateData,
+	        createIdentity
+	    ], (err, result) => {
+	        if (err) {
+	            return res.status(400).send(global.httpResponseUtil(err));
+	        }
+	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
+	    });
+	};
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
+	const steed = __webpack_require__(1);
+	const bcrypt = __webpack_require__(9);
+	const identity_1 = __webpack_require__(10);
+	const salt = bcrypt.genSaltSync(10);
+	exports.encodePassword = (password) => bcrypt.hashSync(password, salt);
+	exports.createIdentityWorklow = (userData) => {
+	    return new Promise((resolve, reject) => {
+	        let sendUserData;
+	        const mapData = (callback) => {
+	            sendUserData = Object.assign({}, userData);
+	            sendUserData.password = exports.encodePassword(userData.password);
+	            callback();
+	        };
+	        const createIdentityHandler = (callback) => __awaiter(this, void 0, void 0, function* () {
+	            try {
+	                const user = yield identity_1.createIdentity(sendUserData);
+	                callback(null, user);
+	            }
+	            catch (err) {
+	                callback(err);
+	            }
+	        });
+	        steed.waterfall([
+	            mapData,
+	            createIdentityHandler
+	        ], (err, result) => {
+	            if (err) {
+	                reject(err);
+	            }
+	            else {
+	                resolve(result);
+	            }
+	        });
+	    });
+	};
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	module.exports = require("bcrypt");
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const mongoose = __webpack_require__(11);
+	const Schema = mongoose.Schema;
+	const definedIdentitySchema = new Schema({
+	    profile: {
+	        name: {
+	            first: { type: String },
+	            last: { type: String }
+	        }
+	    },
+	    email: {
+	        type: String,
+	        required: true,
+	        lowercase: true,
+	    },
+	    password: { type: String, required: true },
+	    createdAt: { type: Number, default: Date.now() }
+	}, {
+	    collection: 'users'
+	});
+	let identitySchema;
+	try {
+	    identitySchema = mongoose.model('users');
+	}
+	catch (err) {
+	    identitySchema = mongoose.model('users', definedIdentitySchema);
+	}
+	exports.createIdentity = (data) => {
+	    const newIdentity = new identitySchema(data);
+	    return newIdentity.save();
+	};
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	module.exports = require("mongoose");
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const mongoose = __webpack_require__(11);
+	const bluebird = __webpack_require__(13);
+	const mongoURL = 'mongodb://localhost:27017/rest-in-peace';
 	const initializeDatabase = () => {
 	    mongoose.Promise = bluebird;
 	    return new Promise((resolve, reject) => {
 	        const connection = mongoose.createConnection(mongoURL);
 	        connection.on('open', () => {
+	            mongoose.connect(mongoURL);
 	            global.loggerUtil().info(`Connected to DB at ${mongoURL}`);
 	            resolve();
 	        });
@@ -222,30 +371,24 @@ exports[true] =
 
 
 /***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	module.exports = require("mongoose");
-
-/***/ },
-/* 9 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("bluebird");
 
 /***/ },
-/* 10 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const errors = __webpack_require__(11);
+	const errors = __webpack_require__(15);
 	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = errorUtil;
 
 
 /***/ },
-/* 11 */
+/* 15 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -253,17 +396,20 @@ exports[true] =
 			"errorMessage": "Opsss... Bad request"
 		},
 		"InvalidCredentials": {
-			"errorMessage": "Invalidcredentials"
+			"errorMessage": "Invalid credentials"
+		},
+		"MissingData": {
+			"errorMessage": "Some data is missing"
 		}
 	};
 
 /***/ },
-/* 12 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(13);
-	const chalk = __webpack_require__(14);
+	const pino = __webpack_require__(17);
+	const chalk = __webpack_require__(18);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -321,19 +467,19 @@ exports[true] =
 
 
 /***/ },
-/* 13 */
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 14 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
 
 /***/ },
-/* 15 */
+/* 19 */
 /***/ function(module, exports) {
 
 	"use strict";

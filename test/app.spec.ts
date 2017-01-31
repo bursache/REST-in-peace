@@ -27,12 +27,12 @@ describe('/user', () => {
     const should = chai.should()
     chai.use(chaiHttp)
 
-    it('should return 200 on PUT user', (done) => {
+    it('should return 400 on PUT empty user', (done) => {
         chai.request('http://localhost:5050')
             .put('/user')
             .send({})
             .end((err, res) => {
-                res.should.have.status(200)
+                res.should.have.status(400)
                 done()
             })
     })
