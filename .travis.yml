@@ -4,8 +4,7 @@ node_js:
 
 sudo: true
 
-os:
-  -osx
+os: osx
 
 notifications:
   email: false
