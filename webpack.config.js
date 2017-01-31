@@ -15,7 +15,7 @@ module.exports = {
     stats: {
         colors: true,
         reasons: true,
-        chunks: false
+        chunks: true
     },
     module: {
         preLoaders: [
