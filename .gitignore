@@ -112,5 +112,7 @@ fabric.properties
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+test/**/*.js
+src/**/*.js
 
 # End of https://www.gitignore.io/api/node,webstorm,visualstudiocode

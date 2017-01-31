@@ -1,4 +1,4 @@
-const httpResponse = (response: IHandlerResponse) => {
+const httpResponse = (response: IHTTPResponse) => {
     return {
         status: {
             errorMessage: response.err ? response.err.errorMessage : '',

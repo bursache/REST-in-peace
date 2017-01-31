@@ -8,10 +8,18 @@ interface IError {
     errorMessage: string
 }
 
-interface IHandlerResponse {
-    err?: {
-        errorName: string
-        errorMessage: string
-    },
+interface IHTTPResponse {
+    err?: IError
     payload?: any
+}
+
+interface IIdentity {
+    profile: {
+        name:{
+            first: string
+            last: string
+        }
+    }
+    email: string
+    password: string
 }

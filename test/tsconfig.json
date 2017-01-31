@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs"
+  },
+  "filesGlob": [
+   
+  ],
+  "include": [
+       "../typings/index.d.ts",
+    "app.spec.ts",
+    "modules/**/*.spec.ts"
+  ]
+}
