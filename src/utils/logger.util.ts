@@ -56,6 +56,7 @@ const echoStatus = (status: number): string => {
 const pretty = pino.pretty({
     formatter: (log: any) => {
         const pinoLog: IPinoLog = <any>log
+
         if (pinoLog.level === 5) {
             return `[${new Date(pinoLog.time).toISOString()}]  ${echoLevel(pinoLog.level)} ` +
                 `${pinoLog.method} ${pinoLog.url} - Status: ${echoStatus(pinoLog.statusCode)} in ${pinoLog.duration}ms`
