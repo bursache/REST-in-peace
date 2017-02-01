@@ -25,14 +25,14 @@ describe('/', () => {
     })
 })
 
-describe('/user', () => {
+describe('/identity', () => {
     const chai = require('chai')
     const should = chai.should()
     chai.use(chaiHttp)
 
-    it('should return 400 on PUT empty user', (done) => {
+    it('should return 400 on PUT empty identity', (done) => {
         chai.request(`http://localhost:${serverPort}`)
-            .put('/user')
+            .put('/identity')
             .send({})
             .end((err, res) => {
                 if (err) {
