@@ -14,7 +14,7 @@ export const putHandler = (req: Request, res: Response) => {
 
     const validateData = (callback: Function) => {
         if (!validateRequestData(requestData)) {
-            return callback((<IGlobal>global).errorUtil('MissingData'))
+            return callback({ err: (<IGlobal>global).errorUtil('MissingData') })
         }
 
         callback()

@@ -1,6 +1,4 @@
-const chai = require('chai')
-
-const should = chai.should()
+import { expect } from 'chai'
 
 import { validateRequestData } from '../../../../src/modules/identity/handlers/put.handler'
 
@@ -11,7 +9,7 @@ describe('put handler', () => {
             password: '12345678'
         }
 
-        chai.expect(validateRequestData(requestData)).to.equal(true)
+        expect(validateRequestData(requestData)).to.equal(true)
 
         done()
     })

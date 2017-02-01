@@ -215,14 +215,14 @@ exports[true] =
 	    const requestData = req.body;
 	    const validateData = (callback) => {
 	        if (!exports.validateRequestData(requestData)) {
-	            return callback(global.errorUtil('MissingData'));
+	            return callback({ err: global.errorUtil('MissingData') });
 	        }
 	        callback();
 	    };
 	    const createIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
-	            const user = yield identityCreation_workflow_1.createIdentityWorklow(requestData);
-	            callback(null, user);
+	            const identity = yield identityCreation_workflow_1.createIdentityWorklow(requestData);
+	            callback(null, identity);
 	        }
 	        catch (err) {
 	            callback(err);
@@ -258,36 +258,47 @@ exports[true] =
 	const identity_1 = __webpack_require__(10);
 	const salt = bcrypt.genSaltSync(10);
 	exports.encodePassword = (password) => bcrypt.hashSync(password, salt);
-	exports.createIdentityWorklow = (userData) => {
-	    return new Promise((resolve, reject) => {
-	        let sendUserData;
-	        const mapData = (callback) => {
-	            sendUserData = Object.assign({}, userData);
-	            sendUserData.password = exports.encodePassword(userData.password);
-	            callback();
-	        };
-	        const createIdentityHandler = (callback) => __awaiter(this, void 0, void 0, function* () {
-	            try {
-	                const user = yield identity_1.createIdentity(sendUserData);
-	                callback(null, user);
+	exports.createIdentityWorklow = (identityData) => (new Promise((resolve, reject) => {
+	    let sendIdentityData;
+	    const mapData = (callback) => {
+	        sendIdentityData = Object.assign({}, identityData);
+	        sendIdentityData.password = exports.encodePassword(identityData.password);
+	        callback();
+	    };
+	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            yield identity_1.findIdentiyByEmail(sendIdentityData.email);
+	            callback({ err: global.errorUtil() });
+	        }
+	        catch (err) {
+	            if (err.errorMessage === 'Resource not found') {
+	                return callback();
 	            }
-	            catch (err) {
-	                callback(err);
-	            }
-	        });
-	        steed.waterfall([
-	            mapData,
-	            createIdentityHandler
-	        ], (err, result) => {
-	            if (err) {
-	                reject(err);
-	            }
-	            else {
-	                resolve(result);
-	            }
-	        });
+	            callback(err);
+	        }
 	    });
-	};
+	    const createIdentityHandler = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const identity = yield identity_1.createIdentity(sendIdentityData);
+	            callback(null, identity);
+	        }
+	        catch (err) {
+	            callback({ err: err });
+	        }
+	    });
+	    steed.waterfall([
+	        mapData,
+	        checkIdentity,
+	        createIdentityHandler
+	    ], (err, result) => {
+	        if (err) {
+	            reject(err);
+	        }
+	        else {
+	            resolve(result);
+	        }
+	    });
+	}));
 
 
 /***/ },
@@ -519,15 +530,13 @@ exports[true] =
 /***/ function(module, exports) {
 
 	"use strict";
-	const httpResponse = (response) => {
-	    return {
-	        status: {
-	            errorMessage: response.err ? response.err.errorMessage : '',
-	            success: response.err ? false : true,
-	        },
-	        payload: response.err ? {} : response.payload
-	    };
-	};
+	const httpResponse = (response) => ({
+	    status: {
+	        errorMessage: response.err ? response.err.errorMessage : '',
+	        success: response.err ? false : true,
+	    },
+	    payload: response.err ? {} : response.payload
+	});
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = httpResponse;
 

@@ -6,6 +6,8 @@ const querystring = require('query-string')
 const server = require('../src/app')
 const serverPort = process.env.SERVER_PORT
 
+import { deleteIdentity } from '../src/modules/identity/model/identity'
+
 describe('/', () => {
     const chai = require('chai')
     const should = chai.should()
@@ -44,4 +46,47 @@ describe('/identity', () => {
             })
     })
 
+    it('should return 200 on PUT identity', (done) => {
+        const mockSendData = {
+            email: `testUser+${Math.floor((Math.random() * 100) + 1)}@test.com`,
+            password: '12345678'
+        }
+
+        chai.request(`http://localhost:${serverPort}`)
+            .put('/identity')
+            .send(mockSendData)
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+
+                describe('nested create identity', () => {
+                    it('should not create new identity', (redoDone) => {
+                        chai.request(`http://localhost:${serverPort}`)
+                            .put('/identity')
+                            .send(mockSendData)
+                            .end((err, res) => {
+                                if (err) {
+                                    res.should.have.status(400)
+                                }
+
+                                redoDone()
+                            })
+                    })
+
+                    it('should delete identity', (deleteDone) => {
+                        const identityId = res.body.payload._id.toString()
+
+                        deleteIdentity(identityId).then((deleteResult) => {
+                            chai.expect(deleteResult.toString()).to.equal(identityId)
+
+                            deleteDone()
+                        }, deleteDone)
+                    })
+                })
+
+                res.should.have.status(200)
+                done()
+            })
+    })
 })
