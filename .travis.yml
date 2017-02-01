@@ -6,5 +6,8 @@ sudo: true
 
 os: osx
 
+services: 
+  git - mongodb
+
 notifications:
   email: false
