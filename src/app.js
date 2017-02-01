@@ -189,7 +189,7 @@ exports[true] =
 	const put_handler_1 = __webpack_require__(7);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
-	routes.put('/user', (req, res) => put_handler_1.putHandler(req, res));
+	routes.put('/identity', (req, res) => put_handler_1.putHandler(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = routes;
 
@@ -322,28 +322,42 @@ exports[true] =
 	    password: { type: String, required: true },
 	    createdAt: { type: Number, default: Date.now() }
 	}, {
-	    collection: 'users'
+	    collection: 'identities'
 	});
 	let identitySchema;
 	try {
-	    identitySchema = mongoose.model('users');
+	    identitySchema = mongoose.model('identities');
 	}
 	catch (err) {
-	    identitySchema = mongoose.model('users', definedIdentitySchema);
+	    identitySchema = mongoose.model('identities', definedIdentitySchema);
 	}
 	exports.createIdentity = (data) => {
 	    const newIdentity = new identitySchema(data);
 	    return newIdentity.save();
 	};
-	exports.deleteIdentity = (userId) => (new Promise((resolve, reject) => {
+	exports.findIdentiyByEmail = (email) => (new Promise((resolve, reject) => {
 	    const query = {
-	        _id: userId
+	        email: email
+	    };
+	    identitySchema.find(query).limit(1).exec((err, result) => {
+	        if (err) {
+	            return reject(err);
+	        }
+	        if (result.length === 0) {
+	            return reject(global.errorUtil('NotFound'));
+	        }
+	        resolve(result[0]);
+	    });
+	}));
+	exports.deleteIdentity = (identityId) => (new Promise((resolve, reject) => {
+	    const query = {
+	        _id: identityId
 	    };
 	    identitySchema.remove(query, (err) => {
 	        if (err) {
 	            reject(err);
 	        }
-	        resolve(userId);
+	        resolve(identityId);
 	    });
 	}));
 
@@ -411,6 +425,9 @@ exports[true] =
 		},
 		"MissingData": {
 			"errorMessage": "Some data is missing"
+		},
+		"NotFound": {
+			"errorMessage": "Resource not found"
 		}
 	};
 

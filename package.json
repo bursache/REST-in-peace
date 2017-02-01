@@ -7,7 +7,7 @@
     "start-server": "sudo nodemon src/app.js",
     "start-dev": "webpack --display-error-details --watch",
     "pretest": "tsc -p ./test/tsconfig.json",
-    "test": "export SERVER_PORT=5051 && mocha -R nyan --recursive",
+    "test": "clear && export SERVER_PORT=5051 && mocha -R nyan --recursive",
     "posttest": "./removeJS.sh"
   },
   "engines": {

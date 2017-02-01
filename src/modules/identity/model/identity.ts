@@ -17,16 +17,16 @@ const definedIdentitySchema = new Schema(
         password: { type: String, required: true },
         createdAt: { type: Number, default: Date.now() }
     }, {
-        collection: 'users'
+        collection: 'identities'
     }
 )
 
 let identitySchema: any
 
 try {
-    identitySchema = mongoose.model('users')
+    identitySchema = mongoose.model('identities')
 } catch (err) {
-    identitySchema = mongoose.model('users', definedIdentitySchema)
+    identitySchema = mongoose.model('identities', definedIdentitySchema)
 }
 
 export const createIdentity = (data: IIdentity) => {
@@ -35,10 +35,30 @@ export const createIdentity = (data: IIdentity) => {
     return newIdentity.save()
 }
 
-export const deleteIdentity = (userId: string) => (
+export const findIdentiyByEmail = (email: string) => (
     new Promise((resolve: Function, reject: Function) => {
         const query = {
-            _id: userId
+            email: email
+        }
+
+        identitySchema.find(query).limit(1).exec((err: Error, result: any) => {
+            if (err) {
+                return reject(err)
+            }
+
+            if (result.length === 0) {
+                return reject((<IGlobal>global).errorUtil('NotFound'))
+            }
+
+            resolve(result[0])
+        })
+    })
+)
+
+export const deleteIdentity = (identityId: string) => (
+    new Promise((resolve: Function, reject: Function) => {
+        const query = {
+            _id: identityId
         }
 
         identitySchema.remove(query, (err: Error) => {
@@ -46,7 +66,7 @@ export const deleteIdentity = (userId: string) => (
                 reject(err)
             }
 
-            resolve(userId)
+            resolve(identityId)
         })
     })
 )

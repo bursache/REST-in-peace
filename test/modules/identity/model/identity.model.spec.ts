@@ -1,25 +1,49 @@
 import { expect } from 'chai'
 
-import { createIdentity, deleteIdentity } from '../../../../src/modules/identity/model/identity'
+import { createIdentity, findIdentiyByEmail, deleteIdentity } from '../../../../src/modules/identity/model/identity'
 
 describe('identity model', () => {
     it('should create identity', (done) => {
-        const mockUser = {
+        const mockIdentity = {
             email: `testUser+${Math.floor((Math.random() * 100) + 1)}@test.com`,
             password: '12345678'
         }
 
-        createIdentity(mockUser).then((result) => {
+        createIdentity(mockIdentity).then((result) => {
 
-            describe('identity model nested delete', () => {
-                it('should delete identity', (delteDone) => {
-                    const userId = result._id
+            describe('identity model nested', () => {
+                it('should find identity by email', (findDone) => {
+                    const email = result.email
 
-                    deleteIdentity(userId).then((deleteResult) => {
-                        expect(deleteResult).to.equal(userId)
+                    findIdentiyByEmail(email).then((findResult) => {
+                        expect(findResult).to.be.an('object')
+                        expect((<any>findResult)._id.toString()).to.equal(result._id.toString())
 
-                        delteDone()
-                    }, delteDone)
+                        findDone()
+                    }, findDone)
+                })
+
+                it('should not find identity by email', (findDone) => {
+                    const email = 'notTraceableEmail@entity.com'
+
+                    findIdentiyByEmail(email).then((findResult) => {
+                        findDone()
+                    }, (err) => {
+                        expect(err).to.be.an('object')
+                        expect(err).to.have.property('errorMessage').and.to.equal('Resource not found')
+
+                        findDone()
+                    })
+                })
+
+                it('should delete identity', (deleteDone) => {
+                    const identityId = result._id
+
+                    deleteIdentity(identityId).then((deleteResult) => {
+                        expect(deleteResult).to.equal(identityId)
+
+                        deleteDone()
+                    }, deleteDone)
                 })
             })
 
