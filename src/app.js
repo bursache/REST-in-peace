@@ -111,7 +111,7 @@ exports[true] =
 	const bodyParser = __webpack_require__(4);
 	const httpServerMiddlewares = __webpack_require__(5);
 	const routes_1 = __webpack_require__(6);
-	const serverPort = 5050;
+	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
 	const initializeHTTPServer = () => {
 	    server.use(bodyParser.json({ limit: '50mb' }));
@@ -335,6 +335,17 @@ exports[true] =
 	    const newIdentity = new identitySchema(data);
 	    return newIdentity.save();
 	};
+	exports.deleteIdentity = (userId) => (new Promise((resolve, reject) => {
+	    const query = {
+	        _id: userId
+	    };
+	    identitySchema.remove(query, (err) => {
+	        if (err) {
+	            reject(err);
+	        }
+	        resolve(userId);
+	    });
+	}));
 
 
 /***/ },

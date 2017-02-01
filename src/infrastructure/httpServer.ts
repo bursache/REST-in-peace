@@ -6,7 +6,7 @@ import * as bodyParser from 'body-parser'
 import * as httpServerMiddlewares from '../infrastructure/middlewares'
 import identityRoutes from '../modules/identity/routes'
 
-const serverPort = 5050
+const serverPort = process.env.SERVER_PORT || 5050
 const server = express()
 
 const initializeHTTPServer = () => {

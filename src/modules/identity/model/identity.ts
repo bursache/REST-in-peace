@@ -34,3 +34,19 @@ export const createIdentity = (data: IIdentity) => {
 
     return newIdentity.save()
 }
+
+export const deleteIdentity = (userId: string) => (
+    new Promise((resolve: Function, reject: Function) => {
+        const query = {
+            _id: userId
+        }
+
+        identitySchema.remove(query, (err: Error) => {
+            if (err) {
+                reject(err)
+            }
+
+            resolve(userId)
+        })
+    })
+)
