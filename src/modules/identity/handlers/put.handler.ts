@@ -4,15 +4,10 @@ import * as steed from 'steed'
 
 import { createIdentityWorklow } from '../workflows/identityCreation.workflow'
 
-const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\.,;:\\s@\"]+)*)',
-    '|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.',
-    '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
-    '[a-zA-Z]{2,}))$'].join(''))
-
-const isValidEmail = (email: string): boolean => emailPattern.test(email)
+import { emailValidator } from '../../../utils/validator.util'
 
 export const validateRequestData = (data: any): boolean =>
-    (data.email && data.password && isValidEmail(data.email) && data.password.length > 6)
+    (data.email && data.password && emailValidator(data.email) && data.password.length > 6)
 
 export const putHandler = (req: Request, res: Response) => {
     const requestData: IIdentity = req.body
@@ -27,9 +22,9 @@ export const putHandler = (req: Request, res: Response) => {
 
     const createIdentity = async (callback: Function) => {
         try {
-            const user = await createIdentityWorklow(requestData)
+            const identity = await createIdentityWorklow(requestData)
 
-            callback(null, user)
+            callback(null, identity)
         } catch (err) {
             callback(err)
         }

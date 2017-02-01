@@ -6,22 +6,22 @@ import { createIdentity } from '../model/identity'
 const salt = bcrypt.genSaltSync(10)
 export const encodePassword = (password: string): string => bcrypt.hashSync(password, salt)
 
-export const createIdentityWorklow = (userData: IIdentity) => {
+export const createIdentityWorklow = (identityData: IIdentity) => {
     return new Promise((resolve: Function, reject: Function) => {
-        let sendUserData: IIdentity
+        let sendIdentityData: IIdentity
 
         const mapData = (callback: Function) => {
-            sendUserData = Object.assign({}, userData)
-            sendUserData.password = encodePassword(userData.password)
+            sendIdentityData = Object.assign({}, identityData)
+            sendIdentityData.password = encodePassword(identityData.password)
 
             callback()
         }
 
         const createIdentityHandler = async (callback: Function) => {
             try {
-                const user = await createIdentity(sendUserData)
+                const identity = await createIdentity(sendIdentityData)
 
-                callback(null, user)
+                callback(null, identity)
             } catch (err) {
                 callback(err)
             }
