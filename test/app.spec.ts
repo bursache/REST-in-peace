@@ -8,6 +8,18 @@ const serverPort = process.env.SERVER_PORT
 
 import { deleteIdentity } from '../src/modules/identity/model/identity'
 
+import clearDatabase from './dbGc'
+
+after(function (done) {
+    clearDatabase((err: any) => {
+        if(err){
+            return done(err)
+        }
+
+        done()
+    })
+});
+
 describe('/', () => {
     const chai = require('chai')
     const should = chai.should()

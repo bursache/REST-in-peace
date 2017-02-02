@@ -11,3 +11,6 @@ services:
 
 notifications:
   email: false
+
+after_script
+  - mongo rest-in-peace --eval 'db.dropCollection("identities");'
