@@ -10,7 +10,6 @@ describe('identity model', () => {
         }
 
         createIdentity(mockIdentity).then((result) => {
-
             describe('identity model nested', () => {
                 it('should find identity by email', (findDone) => {
                     const email = result.email
@@ -49,6 +48,5 @@ describe('identity model', () => {
 
             done()
         }, done)
-
     })
 })
