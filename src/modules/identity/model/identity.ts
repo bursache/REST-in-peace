@@ -38,10 +38,10 @@ export const createIdentity = (data: IIdentity) => {
 export const findIdentiyByEmail = (email: string) => (
     new Promise((resolve: Function, reject: Function) => {
         const query = {
-            email: email
+            email: email.toLowerCase()
         }
 
-        identitySchema.find(query).limit(1).exec((err: Error, result: any) => {
+        identitySchema.find(query).exec((err: Error, result: any) => {
             if (err) {
                 return reject(err)
             }

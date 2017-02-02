@@ -9,6 +9,6 @@ routes.get('/', (req: Request, res: Response) =>
     (res.status(200).send((<IGlobal>global).httpResponseUtil({ payload: { 'status': 'up' } })))
 )
 
-routes.put('/identity',  (req: Request, res: Response) => putHandler(req, res))
+routes.post('/identity',  (req: Request, res: Response) => putHandler(req, res))
 
 export default routes

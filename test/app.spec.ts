@@ -32,9 +32,9 @@ describe('/identity', () => {
     const should = chai.should()
     chai.use(chaiHttp)
 
-    it('should return 400 on PUT empty identity', (done) => {
+    it('should return 400 on POST empty identity', (done) => {
         chai.request(`http://localhost:${serverPort}`)
-            .put('/identity')
+            .post('/identity')
             .send({})
             .end((err, res) => {
                 if (err) {
@@ -46,14 +46,14 @@ describe('/identity', () => {
             })
     })
 
-    it('should return 200 on PUT identity', (done) => {
+    it('should return 200 on POST identity', (done) => {
         const mockSendData = {
             email: `testUser+${Math.floor((Math.random() * 100) + 1)}@test.com`,
             password: '12345678'
         }
 
         chai.request(`http://localhost:${serverPort}`)
-            .put('/identity')
+            .post('/identity')
             .send(mockSendData)
             .end((err, res) => {
                 if (err) {
@@ -63,7 +63,7 @@ describe('/identity', () => {
                 describe('nested create identity', () => {
                     it('should not create new identity', (redoDone) => {
                         chai.request(`http://localhost:${serverPort}`)
-                            .put('/identity')
+                            .post('/identity')
                             .send(mockSendData)
                             .end((err, res) => {
                                 if (err) {
