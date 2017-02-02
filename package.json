@@ -4,10 +4,10 @@
   "description": "A RESTful Web Service Starter Kit",
   "main": "index.js",
   "scripts": {
-    "start-server": "sudo nodemon src/app.js",
+    "start-server": "export DB_URL=mongodb://localhost:27017/rest-in-peace && nodemon src/app.js",
     "start-dev": "webpack --display-error-details --watch",
     "pretest": "tsc -p ./test/tsconfig.json",
-    "test": "clear && export SERVER_PORT=5051 && mocha -R nyan --recursive",
+    "test": "clear && export SERVER_PORT=5051 && export DB_URL=mongodb://127.0.0.1:27017/rest-in-peace-test && mocha -R nyan --recursive",
     "posttest": "./removeJS.sh"
   },
   "engines": {

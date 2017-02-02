@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose'
 import * as bluebird from 'bluebird'
 
-const mongoURL = 'mongodb://localhost:27017/rest-in-peace'
+const mongoURL = process.env.DB_URL
 
 const initializeDatabase = () => {
     (<any>mongoose).Promise = bluebird

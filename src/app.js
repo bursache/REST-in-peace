@@ -57,9 +57,9 @@ exports[true] =
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
 	const mongoConnetor_1 = __webpack_require__(13);
-	const error_util_1 = __webpack_require__(14);
-	const logger_util_1 = __webpack_require__(16);
-	const httpResponse_util_1 = __webpack_require__(19);
+	const error_util_1 = __webpack_require__(15);
+	const logger_util_1 = __webpack_require__(17);
+	const httpResponse_util_1 = __webpack_require__(20);
 	const initializeGlobalUtils = (callback) => {
 	    const restGlobal = global;
 	    restGlobal.errorUtil = error_util_1.default;
@@ -393,8 +393,8 @@ exports[true] =
 
 	"use strict";
 	const mongoose = __webpack_require__(11);
-	const bluebird = __webpack_require__(23);
-	const mongoURL = 'mongodb://localhost:27017/rest-in-peace';
+	const bluebird = __webpack_require__(14);
+	const mongoURL = process.env.DB_URL;
 	const initializeDatabase = () => {
 	    mongoose.Promise = bluebird;
 	    return new Promise((resolve, reject) => {
@@ -416,17 +416,23 @@ exports[true] =
 
 /***/ },
 /* 14 */
+/***/ function(module, exports) {
+
+	module.exports = require("bluebird");
+
+/***/ },
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const errors = __webpack_require__(15);
+	const errors = __webpack_require__(16);
 	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = errorUtil;
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -445,12 +451,12 @@ exports[true] =
 	};
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(17);
-	const chalk = __webpack_require__(18);
+	const pino = __webpack_require__(18);
+	const chalk = __webpack_require__(19);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -508,19 +514,19 @@ exports[true] =
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -534,15 +540,6 @@ exports[true] =
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = httpResponse;
 
-
-/***/ },
-/* 20 */,
-/* 21 */,
-/* 22 */,
-/* 23 */
-/***/ function(module, exports) {
-
-	module.exports = require("bluebird");
 
 /***/ }
 /******/ ]);
