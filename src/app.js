@@ -111,6 +111,7 @@ exports[true] =
 	const bodyParser = __webpack_require__(4);
 	const httpServerMiddlewares = __webpack_require__(5);
 	const routes_1 = __webpack_require__(6);
+	const routes_2 = __webpack_require__(25);
 	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
 	const initializeHTTPServer = () => {
@@ -119,6 +120,7 @@ exports[true] =
 	    server.use(httpServerMiddlewares.allowCrossDomain);
 	    server.use(httpServerMiddlewares.logRequest);
 	    server.use(routes_1.default);
+	    server.use(routes_2.default);
 	    return new Promise((resolve, reject) => {
 	        server.listen(serverPort, () => {
 	            global.loggerUtil().info(`Server is running on port ${serverPort}`);
@@ -186,61 +188,16 @@ exports[true] =
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const put_handler_1 = __webpack_require__(7);
+	const post_handler_1 = __webpack_require__(27);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
-	routes.post('/identity', (req, res) => put_handler_1.putHandler(req, res));
+	routes.post('/identity', (req, res) => post_handler_1.postHandler(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = routes;
 
 
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-	    return new (P || (P = Promise))(function (resolve, reject) {
-	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-	        step((generator = generator.apply(thisArg, _arguments || [])).next());
-	    });
-	};
-	const steed = __webpack_require__(1);
-	const identityCreation_workflow_1 = __webpack_require__(8);
-	const validator_util_1 = __webpack_require__(12);
-	exports.validateRequestData = (data) => (data.email && data.password && validator_util_1.emailValidator(data.email) && data.password.length > 6);
-	exports.putHandler = (req, res) => {
-	    const requestData = req.body;
-	    const validateData = (callback) => {
-	        if (!exports.validateRequestData(requestData)) {
-	            return callback({ err: global.errorUtil('MissingData') });
-	        }
-	        callback();
-	    };
-	    const createIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
-	        try {
-	            const identity = yield identityCreation_workflow_1.createIdentityWorklow(requestData);
-	            callback(null, identity);
-	        }
-	        catch (err) {
-	            callback(err);
-	        }
-	    });
-	    steed.waterfall([
-	        validateData,
-	        createIdentity
-	    ], (err, result) => {
-	        if (err) {
-	            return res.status(400).send(global.httpResponseUtil(err));
-	        }
-	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
-	    });
-	};
-
-
-/***/ },
+/* 7 */,
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -385,6 +342,7 @@ exports[true] =
 	    '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
 	    '[a-zA-Z]{2,}))$'].join(''));
 	exports.emailValidator = (email) => emailPattern.test(email);
+	exports.emailAndPasswordValidator = (data) => (data.email && data.password && exports.emailValidator(data.email) && data.password.length > 6);
 
 
 /***/ },
@@ -543,6 +501,111 @@ exports[true] =
 /***/ function(module, exports) {
 
 	module.exports = require("bluebird");
+
+/***/ },
+/* 24 */,
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const express_1 = __webpack_require__(3);
+	const post_handler_1 = __webpack_require__(26);
+	const routes = express_1.Router();
+	routes.post('/auth/login', (req, res) => post_handler_1.postHandler(req, res));
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = routes;
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const steed = __webpack_require__(1);
+	const validator_util_1 = __webpack_require__(12);
+	exports.decodeData = (data) => {
+	    const debuffedData = Buffer.from(data, 'base64').toString();
+	    const loginData = debuffedData.split(':');
+	    return {
+	        email: loginData[0],
+	        password: loginData[1]
+	    };
+	};
+	exports.postHandler = (req, res) => {
+	    const requesData = req.body;
+	    const decodeRequestData = (callback) => {
+	        if (!requesData.up) {
+	            return callback({ err: global.errorUtil('MissingData') });
+	        }
+	        callback(null, exports.decodeData(requesData.up));
+	    };
+	    const validateData = (loginData, callback) => {
+	        if (!validator_util_1.emailAndPasswordValidator(loginData)) {
+	            return callback({ err: global.errorUtil('MissingData') });
+	        }
+	        callback();
+	    };
+	    const login = (callback) => {
+	        callback();
+	    };
+	    steed.waterfall([
+	        decodeRequestData,
+	        validateData,
+	        login
+	    ], (err, result) => {
+	        if (err) {
+	            return res.status(400).send(global.httpResponseUtil(err));
+	        }
+	        console.log(result);
+	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
+	    });
+	};
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
+	const steed = __webpack_require__(1);
+	const identityCreation_workflow_1 = __webpack_require__(8);
+	const validator_util_1 = __webpack_require__(12);
+	exports.postHandler = (req, res) => {
+	    const requestData = req.body;
+	    const validateData = (callback) => {
+	        if (!validator_util_1.emailAndPasswordValidator(requestData)) {
+	            return callback({ err: global.errorUtil('MissingData') });
+	        }
+	        callback();
+	    };
+	    const createIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const identity = yield identityCreation_workflow_1.createIdentityWorklow(requestData);
+	            callback(null, identity);
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
+	    steed.waterfall([
+	        validateData,
+	        createIdentity
+	    ], (err, result) => {
+	        if (err) {
+	            return res.status(400).send(global.httpResponseUtil(err));
+	        }
+	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
+	    });
+	};
+
 
 /***/ }
 /******/ ]);

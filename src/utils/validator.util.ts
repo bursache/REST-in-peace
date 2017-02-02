@@ -4,3 +4,6 @@ const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\
     '[a-zA-Z]{2,}))$'].join(''))
 
 export const emailValidator = (email: string): boolean => emailPattern.test(email)
+
+export const emailAndPasswordValidator = (data: ILoginData): boolean =>
+    (data.email && data.password && emailValidator(data.email) && data.password.length > 6)

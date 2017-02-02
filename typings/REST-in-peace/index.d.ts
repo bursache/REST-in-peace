@@ -13,7 +13,6 @@ interface IHTTPResponse {
     payload?: any
 }
 
-
 interface IIdentity {
     profile?: {
         name:{
@@ -21,6 +20,11 @@ interface IIdentity {
             last: string
         }
     }
+    email: string
+    password: string
+}
+
+interface ILoginData {
     email: string
     password: string
 }

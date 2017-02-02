@@ -90,3 +90,20 @@ describe('/identity', () => {
             })
     })
 })
+
+describe('/auth/login', () => {
+    const chai = require('chai')
+    const should = chai.should()
+    chai.use(chaiHttp)
+
+    it('should 200 on login', (done) => {
+        chai.request(`http://localhost:${serverPort}`)
+            .post('/auth/login')
+            .send({})
+            .end((err, res) => {
+                res.should.have.status(400)
+
+                done()
+            })
+    })
+})
