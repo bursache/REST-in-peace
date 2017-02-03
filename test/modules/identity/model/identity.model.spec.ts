@@ -9,7 +9,7 @@ describe('identity model', () => {
             password: '12345678'
         }
 
-        createIdentity(mockIdentity).then((result) => {
+        createIdentity(mockIdentity).then((result:any) => {
             describe('identity model nested', () => {
                 it('should find identity by email', (findDone) => {
                     const email = result.email

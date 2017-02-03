@@ -1,36 +1,62 @@
-const db = (<IGlobal>global).db
+let db: any
 
-db.createCollection("identities", {
-    validator: {
-        $and: [
-            { 'email': { $type: 'string', $exists: true } },
-            { 'password': { $type: 'string', $exists: true } },
-            { 'createdAt': { $type: 'number', $exists: true } },
-        ]
-    },
-    validationAction: 'error',
-    validationLevel: 'moderate'
-})
+export const identityCollectionValidation = () => {
+    db = (<IGlobal>global).db
 
-export const createIdentity = (data: IIdentity) => {
-    const newIdentity = new identitySchema(data)
-
-    return newIdentity.save()
+    try {
+        db.createCollection('identities', {
+            validator: {
+                $and: [
+                    { 'email': { $type: 'string', $exists: true } },
+                    { 'password': { $type: 'string', $exists: true } },
+                    { 'createdAt': { $type: 'number', $exists: true } },
+                ]
+            },
+            validationAction: 'error',
+            validationLevel: 'moderate'
+        })
+    } catch (err) {
+        (<IGlobal>global).loggerUtil().error(`Identity create collection ${err}`)
+    }
 }
+
+export const createIdentity = (data: IIdentity) => (
+    new Promise((resolve: Function, reject: Function) => {
+        const identityCollection = db.collection('identities')
+
+        identityCollection.insertOne(data, (err: Error, doc: any) => {
+            if (err) {
+                reject(err)
+            }
+
+            const query = {
+                email: data.email.toLowerCase()
+            }
+
+            identityCollection.find(query).limit(1).toArray((err: Error, result: any) => {
+                if (err) {
+                    reject(err)
+                }
+
+                resolve(result[0])
+            })
+        })
+    })
+)
 
 export const findIdentiyByEmail = (email: string) => (
     new Promise((resolve: Function, reject: Function) => {
         const query = {
             email: email.toLowerCase()
         }
-
-        identitySchema.find(query).exec((err: Error, result: any) => {
+        const identityCollection = db.collection('identities')
+        identityCollection.find(query).limit(1).toArray((err: Error, result: any) => {
             if (err) {
-                return reject(err)
+                reject(err)
             }
 
             if (result.length === 0) {
-                return reject((<IGlobal>global).errorUtil('NotFound'))
+                reject((<IGlobal>global).errorUtil('NotFound'))
             }
 
             resolve(result[0])
@@ -40,16 +66,17 @@ export const findIdentiyByEmail = (email: string) => (
 
 export const deleteIdentity = (identityId: string) => (
     new Promise((resolve: Function, reject: Function) => {
-        const query = {
-            _id: identityId
-        }
+        resolve(identityId)
+        // const query = {
+        //     _id: identityId
+        // }
 
-        identitySchema.remove(query, (err: Error) => {
-            if (err) {
-                reject(err)
-            }
+        // identitySchema.remove(query, (err: Error) => {
+        //     if (err) {
+        //         reject(err)
+        //     }
 
-            resolve(identityId)
-        })
+        //     resolve(identityId)
+        // })
     })
 )

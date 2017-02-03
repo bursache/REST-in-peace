@@ -10,15 +10,16 @@ import { deleteIdentity } from '../src/modules/identity/model/identity'
 
 import clearDatabase from './dbGc'
 
-after(function (done) {
-    clearDatabase((err: any) => {
-        if(err){
-            return done(err)
-        }
+after((done) => {
+    // clearDatabase((err: any) => {
+    //     if(err){
+    //         return done(err)
+    //     }
 
-        done()
-    })
-});
+    //     done()
+    // })
+    done()
+})
 
 describe('/', () => {
     const chai = require('chai')
@@ -39,7 +40,7 @@ describe('/', () => {
     })
 })
 
-describe('/identity', () => {
+describe.only('/identity', () => {
     const chai = require('chai')
     const should = chai.should()
     chai.use(chaiHttp)

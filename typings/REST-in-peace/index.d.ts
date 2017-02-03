@@ -1,10 +1,8 @@
-import * as mongodb from 'mongodb';
-
 interface IGlobal extends NodeJS.Global {
     errorUtil: Function
     loggerUtil: Function
     httpResponseUtil: Function,
-    db: mongodb.Db
+    db: any
 }
 
 interface IError {

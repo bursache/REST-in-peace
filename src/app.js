@@ -57,6 +57,7 @@ exports[true] =
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
 	const mongoConnetor_1 = __webpack_require__(13);
+	const identity_1 = __webpack_require__(10);
 	const error_util_1 = __webpack_require__(14);
 	const logger_util_1 = __webpack_require__(16);
 	const httpResponse_util_1 = __webpack_require__(19);
@@ -77,6 +78,10 @@ exports[true] =
 	        callback(err);
 	    }
 	});
+	const initDBCollections = (callback) => {
+	    identity_1.identityCollectionValidation();
+	    callback();
+	};
 	const initializeServer = (callback) => __awaiter(this, void 0, void 0, function* () {
 	    try {
 	        yield httpServer_1.default();
@@ -89,6 +94,7 @@ exports[true] =
 	steed.waterfall([
 	    initializeGlobalUtils,
 	    connectToDatabase,
+	    initDBCollections,
 	    initializeServer
 	], (err) => {
 	    if (err) {
@@ -270,46 +276,60 @@ exports[true] =
 /***/ function(module, exports) {
 
 	"use strict";
-	const db = global.db;
-	db.createCollection("identities", {
-	    validator: {
-	        $and: [
-	            { 'email': { $type: 'string', $exists: true } },
-	            { 'password': { $type: 'string', $exists: true } },
-	            { 'createdAt': { $type: 'number', $exists: true } },
-	        ]
-	    },
-	    validationAction: 'error',
-	    validationLevel: 'moderate'
-	});
-	exports.createIdentity = (data) => {
-	    const newIdentity = new identitySchema(data);
-	    return newIdentity.save();
+	let db;
+	exports.identityCollectionValidation = () => {
+	    db = global.db;
+	    try {
+	        db.createCollection('identities', {
+	            validator: {
+	                $and: [
+	                    { 'email': { $type: 'string', $exists: true } },
+	                    { 'password': { $type: 'string', $exists: true } },
+	                    { 'createdAt': { $type: 'number', $exists: true } },
+	                ]
+	            },
+	            validationAction: 'error',
+	            validationLevel: 'moderate'
+	        });
+	    }
+	    catch (err) {
+	        global.loggerUtil().error(`Identity create collection ${err}`);
+	    }
 	};
+	exports.createIdentity = (data) => (new Promise((resolve, reject) => {
+	    const identityCollection = db.collection('identities');
+	    identityCollection.insertOne(data, (err, doc) => {
+	        if (err) {
+	            reject(err);
+	        }
+	        const query = {
+	            email: data.email.toLowerCase()
+	        };
+	        identityCollection.find(query).limit(1).toArray((err, result) => {
+	            if (err) {
+	                reject(err);
+	            }
+	            resolve(result[0]);
+	        });
+	    });
+	}));
 	exports.findIdentiyByEmail = (email) => (new Promise((resolve, reject) => {
 	    const query = {
 	        email: email.toLowerCase()
 	    };
-	    identitySchema.find(query).exec((err, result) => {
+	    const identityCollection = db.collection('identities');
+	    identityCollection.find(query).limit(1).toArray((err, result) => {
 	        if (err) {
-	            return reject(err);
+	            reject(err);
 	        }
 	        if (result.length === 0) {
-	            return reject(global.errorUtil('NotFound'));
+	            reject(global.errorUtil('NotFound'));
 	        }
 	        resolve(result[0]);
 	    });
 	}));
 	exports.deleteIdentity = (identityId) => (new Promise((resolve, reject) => {
-	    const query = {
-	        _id: identityId
-	    };
-	    identitySchema.remove(query, (err) => {
-	        if (err) {
-	            reject(err);
-	        }
-	        resolve(identityId);
-	    });
+	    resolve(identityId);
 	}));
 
 

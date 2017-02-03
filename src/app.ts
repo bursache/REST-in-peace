@@ -2,6 +2,7 @@ import * as steed from 'steed'
 
 import initializeHTTPServer from './infrastructure/httpServer'
 import initializeDatabase from './infrastructure/database/mongoConnetor'
+import { identityCollectionValidation } from './modules/identity/model/identity'
 
 import errorUtil from './utils/error.util'
 import loggerUtil from './utils/logger.util'
@@ -29,6 +30,11 @@ const connectToDatabase = async (callback: Function) => {
     }
 }
 
+const initDBCollections = (callback: Function) => {
+    identityCollectionValidation()
+    callback()
+}
+
 const initializeServer = async (callback: Function) => {
     try {
         await initializeHTTPServer()
@@ -42,6 +48,7 @@ const initializeServer = async (callback: Function) => {
 steed.waterfall([
     initializeGlobalUtils,
     connectToDatabase,
+    initDBCollections,
     initializeServer
 ], (err: Error) => {
     if (err) {
