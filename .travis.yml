@@ -11,3 +11,6 @@ services:
 
 notifications:
   email: false
+  
+before_script:
+  - sleep 15
