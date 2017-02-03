@@ -267,35 +267,21 @@ exports[true] =
 
 /***/ },
 /* 10 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
-	const mongoose = __webpack_require__(11);
-	const Schema = mongoose.Schema;
-	const definedIdentitySchema = new Schema({
-	    profile: {
-	        name: {
-	            first: { type: String },
-	            last: { type: String }
-	        }
+	const db = global.db;
+	db.createCollection("identities", {
+	    validator: {
+	        $and: [
+	            { 'email': { $type: 'string', $exists: true } },
+	            { 'password': { $type: 'string', $exists: true } },
+	            { 'createdAt': { $type: 'number', $exists: true } },
+	        ]
 	    },
-	    email: {
-	        type: String,
-	        required: true,
-	        lowercase: true,
-	    },
-	    password: { type: String, required: true },
-	    createdAt: { type: Number, default: Date.now() }
-	}, {
-	    collection: 'identities'
+	    validationAction: 'error',
+	    validationLevel: 'moderate'
 	});
-	let identitySchema;
-	try {
-	    identitySchema = mongoose.model('identities');
-	}
-	catch (err) {
-	    identitySchema = mongoose.model('identities', definedIdentitySchema);
-	}
 	exports.createIdentity = (data) => {
 	    const newIdentity = new identitySchema(data);
 	    return newIdentity.save();
@@ -328,12 +314,7 @@ exports[true] =
 
 
 /***/ },
-/* 11 */
-/***/ function(module, exports) {
-
-	module.exports = require("mongoose");
-
-/***/ },
+/* 11 */,
 /* 12 */
 /***/ function(module, exports) {
 

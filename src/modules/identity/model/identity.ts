@@ -1,33 +1,16 @@
-import * as mongoose from 'mongoose'
+const db = (<IGlobal>global).db
 
-const Schema = mongoose.Schema
-const definedIdentitySchema = new Schema(
-    {
-        profile: {
-            name: {
-                first: { type: String },
-                last: { type: String }
-            }
-        },
-        email: {
-            type: String,
-            required: true,
-            lowercase: true,
-        },
-        password: { type: String, required: true },
-        createdAt: { type: Number, default: Date.now() }
-    }, {
-        collection: 'identities'
-    }
-)
-
-let identitySchema: any
-
-try {
-    identitySchema = mongoose.model('identities')
-} catch (err) {
-    identitySchema = mongoose.model('identities', definedIdentitySchema)
-}
+db.createCollection("identities", {
+    validator: {
+        $and: [
+            { 'email': { $type: 'string', $exists: true } },
+            { 'password': { $type: 'string', $exists: true } },
+            { 'createdAt': { $type: 'number', $exists: true } },
+        ]
+    },
+    validationAction: 'error',
+    validationLevel: 'moderate'
+})
 
 export const createIdentity = (data: IIdentity) => {
     const newIdentity = new identitySchema(data)

@@ -19,7 +19,7 @@ const initializeGlobalUtils = (callback: Function) => {
 
 const connectToDatabase = async (callback: Function) => {
     try {
-        const db: Object = await initializeDatabase()
+        const db = await initializeDatabase()
 
         restGlobal.db = db
 
