@@ -2,15 +2,15 @@ language: node_js
 node_js:
   - 6.9.0
 
-sudo: true
+sudo: false
 
 os: osx
 
-services: 
- - mongodb
+services: mongodb
 
 notifications:
   email: false
   
 before_script:
   - sleep 15
+  - "until nc -z localhost 27017; do echo Waiting for MongoDB; sleep 1; done"
