@@ -303,14 +303,14 @@ exports[true] =
 	    createIdentityData.createdAt = Date.now();
 	    identityCollection.insertOne(createIdentityData, (err, doc) => {
 	        if (err) {
-	            reject(err);
+	            reject({ errorMessage: err.message });
 	        }
 	        const query = {
 	            email: createIdentityData.email
 	        };
 	        identityCollection.find(query).limit(1).toArray((error, result) => {
 	            if (error) {
-	                reject(err);
+	                reject({ errorMessage: err.message });
 	            }
 	            resolve(result[0]);
 	        });
@@ -323,7 +323,7 @@ exports[true] =
 	    const identityCollection = db.collection('identities');
 	    identityCollection.find(query).limit(1).toArray((err, result) => {
 	        if (err) {
-	            reject(err);
+	            reject({ errorMessage: err.message });
 	        }
 	        if (result.length === 0) {
 	            reject(global.errorUtil('NotFound'));

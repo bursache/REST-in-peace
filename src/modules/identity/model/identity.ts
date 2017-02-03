@@ -30,7 +30,7 @@ export const createIdentity = (data: IIdentity) => (
 
         identityCollection.insertOne(createIdentityData, (err: Error, doc: any) => {
             if (err) {
-                reject(err)
+                reject({ errorMessage: err.message })
             }
 
             const query = {
@@ -39,7 +39,7 @@ export const createIdentity = (data: IIdentity) => (
 
             identityCollection.find(query).limit(1).toArray((error: Error, result: any) => {
                 if (error) {
-                    reject(err)
+                    reject({ errorMessage: err.message })
                 }
 
                 resolve(result[0])
@@ -57,7 +57,7 @@ export const findIdentiyByEmail = (email: string) => (
 
         identityCollection.find(query).limit(1).toArray((err: Error, result: any) => {
             if (err) {
-                reject(err)
+                reject({ errorMessage: err.message })
             }
 
             if (result.length === 0) {
