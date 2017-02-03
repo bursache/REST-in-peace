@@ -8,7 +8,7 @@ sudo: required
 os: osx
 
 before_install:
-  - source travisci/before_install.sh 
+  - source bash_utils/before_install.sh 
 
 services: mongodb
 
