@@ -276,11 +276,12 @@ exports[true] =
 /***/ function(module, exports) {
 
 	"use strict";
-	let db;
+	const logMongoError = (error) => {
+	    global.loggerUtil().error(`Mongo: ${error.message}`);
+	};
 	exports.identityCollectionValidation = () => {
-	    db = global.db;
 	    try {
-	        db.createCollection('identities', {
+	        global.db.createCollection('identities', {
 	            validator: {
 	                $and: [
 	                    { 'email': { $type: 'string', $exists: true } },
@@ -293,16 +294,17 @@ exports[true] =
 	        });
 	    }
 	    catch (err) {
-	        global.loggerUtil().error(`Identity create collection ${err}`);
+	        logMongoError(err);
 	    }
 	};
 	exports.createIdentity = (data) => (new Promise((resolve, reject) => {
-	    const identityCollection = db.collection('identities');
+	    const identityCollection = global.db.collection('identities');
 	    const createIdentityData = Object.assign({}, data);
 	    createIdentityData.email = createIdentityData.email.toLowerCase();
 	    createIdentityData.createdAt = Date.now();
 	    identityCollection.insertOne(createIdentityData, (err, doc) => {
 	        if (err) {
+	            logMongoError(err);
 	            reject({ errorMessage: err.message });
 	        }
 	        const query = {
@@ -320,9 +322,10 @@ exports[true] =
 	    const query = {
 	        email: email.toLowerCase()
 	    };
-	    const identityCollection = db.collection('identities');
+	    const identityCollection = global.db.collection('identities');
 	    identityCollection.find(query).limit(1).toArray((err, result) => {
 	        if (err) {
+	            logMongoError(err);
 	            reject({ errorMessage: err.message });
 	        }
 	        if (result.length === 0) {
@@ -332,7 +335,17 @@ exports[true] =
 	    });
 	}));
 	exports.deleteIdentity = (identityId) => (new Promise((resolve, reject) => {
-	    resolve(identityId);
+	    const query = {
+	        _id: identityId
+	    };
+	    const identityCollection = global.db.collection('identities');
+	    identityCollection.deleteOne(query, (err) => {
+	        if (err) {
+	            logMongoError(err);
+	            reject(err);
+	        }
+	        resolve(identityId);
+	    });
 	}));
 
 

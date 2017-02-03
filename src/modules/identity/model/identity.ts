@@ -1,10 +1,11 @@
-let db: any
+
+const logMongoError = (error: Error) => {
+    (<IGlobal>global).loggerUtil().error(`Mongo: ${error.message}`)
+}
 
 export const identityCollectionValidation = () => {
-    db = (<IGlobal>global).db
-
     try {
-        db.createCollection('identities', {
+        (<IGlobal>global).db.createCollection('identities', {
             validator: {
                 $and: [
                     { 'email': { $type: 'string', $exists: true } },
@@ -16,13 +17,13 @@ export const identityCollectionValidation = () => {
             validationLevel: 'moderate'
         })
     } catch (err) {
-        (<IGlobal>global).loggerUtil().error(`Identity create collection ${err}`)
+        logMongoError(err)
     }
 }
 
 export const createIdentity = (data: IIdentity) => (
     new Promise((resolve: Function, reject: Function) => {
-        const identityCollection = db.collection('identities')
+        const identityCollection = (<IGlobal>global).db.collection('identities')
 
         const createIdentityData: any = Object.assign({}, data)
         createIdentityData.email = createIdentityData.email.toLowerCase()
@@ -30,6 +31,7 @@ export const createIdentity = (data: IIdentity) => (
 
         identityCollection.insertOne(createIdentityData, (err: Error, doc: any) => {
             if (err) {
+                logMongoError(err)
                 reject({ errorMessage: err.message })
             }
 
@@ -53,10 +55,11 @@ export const findIdentiyByEmail = (email: string) => (
         const query = {
             email: email.toLowerCase()
         }
-        const identityCollection = db.collection('identities')
+        const identityCollection = (<IGlobal>global).db.collection('identities')
 
         identityCollection.find(query).limit(1).toArray((err: Error, result: any) => {
             if (err) {
+                logMongoError(err)
                 reject({ errorMessage: err.message })
             }
 
@@ -71,17 +74,18 @@ export const findIdentiyByEmail = (email: string) => (
 
 export const deleteIdentity = (identityId: string) => (
     new Promise((resolve: Function, reject: Function) => {
-        resolve(identityId)
-        // const query = {
-        //     _id: identityId
-        // }
+        const query = {
+            _id: identityId
+        }
+        const identityCollection = (<IGlobal>global).db.collection('identities')
 
-        // identitySchema.remove(query, (err: Error) => {
-        //     if (err) {
-        //         reject(err)
-        //     }
+        identityCollection.deleteOne(query, (err: Error) => {
+            if (err) {
+                logMongoError(err)
+                reject(err)
+            }
 
-        //     resolve(identityId)
-        // })
+            resolve(identityId)
+        })
     })
 )
