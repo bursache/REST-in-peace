@@ -298,15 +298,18 @@ exports[true] =
 	};
 	exports.createIdentity = (data) => (new Promise((resolve, reject) => {
 	    const identityCollection = db.collection('identities');
-	    identityCollection.insertOne(data, (err, doc) => {
+	    const createIdentityData = Object.assign({}, data);
+	    createIdentityData.email = createIdentityData.email.toLowerCase();
+	    createIdentityData.createdAt = Date.now();
+	    identityCollection.insertOne(createIdentityData, (err, doc) => {
 	        if (err) {
 	            reject(err);
 	        }
 	        const query = {
-	            email: data.email.toLowerCase()
+	            email: createIdentityData.email
 	        };
-	        identityCollection.find(query).limit(1).toArray((err, result) => {
-	            if (err) {
+	        identityCollection.find(query).limit(1).toArray((error, result) => {
+	            if (error) {
 	                reject(err);
 	            }
 	            resolve(result[0]);

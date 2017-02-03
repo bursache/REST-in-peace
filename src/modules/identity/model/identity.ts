@@ -24,17 +24,21 @@ export const createIdentity = (data: IIdentity) => (
     new Promise((resolve: Function, reject: Function) => {
         const identityCollection = db.collection('identities')
 
-        identityCollection.insertOne(data, (err: Error, doc: any) => {
+        const createIdentityData: any = Object.assign({}, data)
+        createIdentityData.email = createIdentityData.email.toLowerCase()
+        createIdentityData.createdAt = Date.now()
+
+        identityCollection.insertOne(createIdentityData, (err: Error, doc: any) => {
             if (err) {
                 reject(err)
             }
 
             const query = {
-                email: data.email.toLowerCase()
+                email: createIdentityData.email
             }
 
-            identityCollection.find(query).limit(1).toArray((err: Error, result: any) => {
-                if (err) {
+            identityCollection.find(query).limit(1).toArray((error: Error, result: any) => {
+                if (error) {
                     reject(err)
                 }
 
@@ -50,6 +54,7 @@ export const findIdentiyByEmail = (email: string) => (
             email: email.toLowerCase()
         }
         const identityCollection = db.collection('identities')
+
         identityCollection.find(query).limit(1).toArray((err: Error, result: any) => {
             if (err) {
                 reject(err)
