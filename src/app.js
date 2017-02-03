@@ -60,8 +60,8 @@ exports[true] =
 	const error_util_1 = __webpack_require__(14);
 	const logger_util_1 = __webpack_require__(16);
 	const httpResponse_util_1 = __webpack_require__(19);
+	const restGlobal = global;
 	const initializeGlobalUtils = (callback) => {
-	    const restGlobal = global;
 	    restGlobal.errorUtil = error_util_1.default;
 	    restGlobal.loggerUtil = logger_util_1.default;
 	    restGlobal.httpResponseUtil = httpResponse_util_1.default;
@@ -69,7 +69,8 @@ exports[true] =
 	};
 	const connectToDatabase = (callback) => __awaiter(this, void 0, void 0, function* () {
 	    try {
-	        yield mongoConnetor_1.default();
+	        const db = yield mongoConnetor_1.default();
+	        restGlobal.db = db;
 	        callback();
 	    }
 	    catch (err) {
@@ -350,24 +351,19 @@ exports[true] =
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongoose = __webpack_require__(11);
-	const bluebird = __webpack_require__(23);
+	const mongodb = __webpack_require__(24);
+	const MongoClient = mongodb.MongoClient;
 	const mongoURL = process.env.DB_URL;
-	const initializeDatabase = () => {
-	    mongoose.Promise = bluebird;
-	    return new Promise((resolve, reject) => {
-	        const connection = mongoose.createConnection(mongoURL);
-	        connection.on('open', () => {
-	            mongoose.connect(mongoURL);
-	            global.loggerUtil().info(`Connected to DB at ${mongoURL}`);
-	            resolve();
-	        });
-	        connection.on('error', (err) => {
+	const initializeDatabase = () => (new Promise((resolve, reject) => {
+	    MongoClient.connect(mongoURL, (err, db) => {
+	        if (err) {
 	            global.loggerUtil().error('Error on DB connection', err);
 	            reject();
-	        });
+	        }
+	        global.loggerUtil().info(`Connected to DB at ${mongoURL}`);
+	        resolve(db);
 	    });
-	};
+	}));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = initializeDatabase;
 
@@ -497,13 +493,13 @@ exports[true] =
 /* 20 */,
 /* 21 */,
 /* 22 */,
-/* 23 */
+/* 23 */,
+/* 24 */
 /***/ function(module, exports) {
 
-	module.exports = require("bluebird");
+	module.exports = require("mongodb");
 
 /***/ },
-/* 24 */,
 /* 25 */
 /***/ function(module, exports, __webpack_require__) {
 

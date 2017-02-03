@@ -7,9 +7,9 @@ import errorUtil from './utils/error.util'
 import loggerUtil from './utils/logger.util'
 import httpResponseUtil from './utils/httpResponse.util'
 
-const initializeGlobalUtils = (callback: Function) => {
-    const restGlobal = (<IGlobal>global)
+const restGlobal = (<IGlobal>global)
 
+const initializeGlobalUtils = (callback: Function) => {
     restGlobal.errorUtil = errorUtil
     restGlobal.loggerUtil = loggerUtil
     restGlobal.httpResponseUtil = httpResponseUtil
@@ -19,7 +19,9 @@ const initializeGlobalUtils = (callback: Function) => {
 
 const connectToDatabase = async (callback: Function) => {
     try {
-        await initializeDatabase()
+        const db: Object = await initializeDatabase()
+
+        restGlobal.db = db
 
         callback()
     } catch (err) {

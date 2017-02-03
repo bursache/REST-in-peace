@@ -1,27 +1,20 @@
-import * as mongoose from 'mongoose'
-import * as bluebird from 'bluebird'
+import * as mongodb from 'mongodb'
 
+const MongoClient = mongodb.MongoClient
 const mongoURL = process.env.DB_URL
 
-const initializeDatabase = () => {
-    (<any>mongoose).Promise = bluebird
+const initializeDatabase = () => (
+    new Promise((resolve: Function, reject: Function) => {
+        MongoClient.connect(mongoURL, (err: Error, db: mongodb.Db) => {
+            if (err) {
+                (<IGlobal>global).loggerUtil().error('Error on DB connection', err)
+                reject()
+            }
 
-    return new Promise((resolve: Function, reject: Function) => {
-        const connection = mongoose.createConnection(mongoURL)
-
-        connection.on('open', () => {
-            mongoose.connect(mongoURL);
             (<IGlobal>global).loggerUtil().info(`Connected to DB at ${mongoURL}`)
-
-            resolve()
-        })
-
-        connection.on('error', (err: Error) => {
-            (<IGlobal>global).loggerUtil().error('Error on DB connection', err)
-
-            reject()
+            resolve(db)
         })
     })
-}
+)
 
 export default initializeDatabase
