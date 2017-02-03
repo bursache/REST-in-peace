@@ -8,7 +8,7 @@
     "start-dev": "webpack --display-error-details --watch",
     "pretest": "tsc -p ./test/tsconfig.json",
     "test": "clear && export SERVER_PORT=5051 && export DB_URL=mongodb://127.0.0.1:27017/rest-in-peace-test && mocha -R nyan --recursive",
-    "posttest": "./removeJS.sh"
+    "posttest": "./bash_utils/removeJS.sh"
   },
   "engines": {
     "node": ">=6.9.0",
