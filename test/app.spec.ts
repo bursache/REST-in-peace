@@ -105,7 +105,7 @@ describe('/identity', () => {
 
     it('should return and failed validation', (done) => {
         const mockSendData = {
-            email: `testUser+MONGOERROR@test.com`,
+            email: `testUser+MONGOERROR${Math.floor((Math.random() * 100) + 1)}@test.com`,
             password: '12345678',
             profile: {
                 name: {
@@ -119,9 +119,11 @@ describe('/identity', () => {
             .post('/identity')
             .send(mockSendData)
             .end((err, res) => {
-                res.should.have.status(400)
-                chai.expect(err).to.have.property('errorMessage').and.to.equal('Document failed validation')
+                if (err) {
+                    res.should.have.status(400)
+                }
 
+                chai.expect(res.body.status).to.have.property('errorMessage').and.to.equal('Document failed validation')
                 done()
             })
     })

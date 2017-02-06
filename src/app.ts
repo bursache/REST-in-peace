@@ -30,9 +30,13 @@ const connectToDatabase = async (callback: Function) => {
     }
 }
 
-const initDBCollections = (callback: Function) => {
-    identityCollectionValidation()
-    callback()
+const initDBCollections = async (callback: Function) => {
+    try {
+        await identityCollectionValidation()
+        callback()
+    } catch (err) {
+        callback(err)
+    }
 }
 
 const initializeServer = async (callback: Function) => {

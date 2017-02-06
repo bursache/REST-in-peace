@@ -78,10 +78,15 @@ exports[true] =
 	        callback(err);
 	    }
 	});
-	const initDBCollections = (callback) => {
-	    identity_1.identityCollectionValidation();
-	    callback();
-	};
+	const initDBCollections = (callback) => __awaiter(this, void 0, void 0, function* () {
+	    try {
+	        yield identity_1.identityCollectionValidation();
+	        callback();
+	    }
+	    catch (err) {
+	        callback(err);
+	    }
+	});
 	const initializeServer = (callback) => __awaiter(this, void 0, void 0, function* () {
 	    try {
 	        yield httpServer_1.default();
@@ -320,33 +325,47 @@ exports[true] =
 /***/ function(module, exports) {
 
 	"use strict";
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
 	const logMongoError = (error) => {
 	    global.loggerUtil().error(`Mongo: ${error.message}`);
 	};
-	exports.identityCollectionValidation = () => {
-	    try {
-	        global.db.command({
-	            collMod: 'identities',
-	            validator: {
-	                $and: [
-	                    { 'profile.name.first': { $type: 'string' } },
-	                    { 'profile.name.last': { $type: 'string' } },
-	                    { 'email': { $type: 'string', $exists: true } },
-	                    { 'password': { $type: 'string', $exists: true } },
-	                    { 'createdAt': { $type: 'number', $exists: true } }
-	                ]
-	            },
-	            validationAction: 'error',
-	            validationLevel: 'moderate'
-	        });
-	    }
-	    catch (err) {
-	        logMongoError(err);
-	    }
-	};
+	exports.identityCollectionValidation = () => __awaiter(this, void 0, void 0, function* () {
+	    new Promise((resolve, reject) => {
+	        try {
+	            global.db.createCollection('identities', {}, (err) => {
+	                global.db.command({
+	                    collMod: 'identities',
+	                    validator: {
+	                        $and: [
+	                            { 'profile.name.first': { $type: 'string' } },
+	                            { 'profile.name.last': { $type: 'string' } },
+	                            { 'email': { $type: 'string', $exists: true } },
+	                            { 'password': { $type: 'string', $exists: true } },
+	                            { 'createdAt': { $type: 'number', $exists: true } }
+	                        ]
+	                    },
+	                    validationAction: 'error',
+	                    validationLevel: 'moderate'
+	                });
+	                resolve();
+	            });
+	        }
+	        catch (err) {
+	            logMongoError(err);
+	            reject();
+	        }
+	    });
+	});
 	exports.createIdentity = (data) => (new Promise((resolve, reject) => {
 	    const identityCollection = global.db.collection('identities');
-	    const createIdentityData = Object.assign({}, data);
+	    const createIdentityData = Object.assign({ profile: { name: { first: '', last: '' } } }, data);
 	    createIdentityData.email = createIdentityData.email.toLowerCase();
 	    createIdentityData.createdAt = Date.now();
 	    identityCollection.insertOne(createIdentityData, (err, doc) => {

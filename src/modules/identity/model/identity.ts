@@ -3,32 +3,38 @@ const logMongoError = (error: Error) => {
     (<IGlobal>global).loggerUtil().error(`Mongo: ${error.message}`)
 }
 
-export const identityCollectionValidation = () => {
-    try {
-        (<IGlobal>global).db.command({
-            collMod: 'identities',
-            validator: {
-                $and: [
-                    { 'profile.name.first': { $type: 'string' } },
-                    { 'profile.name.last': { $type: 'string' } },
-                    { 'email': { $type: 'string', $exists: true } },
-                    { 'password': { $type: 'string', $exists: true } },
-                    { 'createdAt': { $type: 'number', $exists: true } }
-                ]
-            },
-            validationAction: 'error',
-            validationLevel: 'moderate'
-        })
-    } catch (err) {
-        logMongoError(err)
-    }
+export const identityCollectionValidation = async () => {
+    new Promise((resolve: Function, reject: Function) => {
+        try {
+            (<IGlobal>global).db.createCollection('identities', {}, (err) => {
+                (<IGlobal>global).db.command({
+                    collMod: 'identities',
+                    validator: {
+                        $and: [
+                            { 'profile.name.first': { $type: 'string' } },
+                            { 'profile.name.last': { $type: 'string' } },
+                            { 'email': { $type: 'string', $exists: true } },
+                            { 'password': { $type: 'string', $exists: true } },
+                            { 'createdAt': { $type: 'number', $exists: true } }
+                        ]
+                    },
+                    validationAction: 'error',
+                    validationLevel: 'moderate'
+                })
+                resolve()
+            })
+        } catch (err) {
+            logMongoError(err)
+            reject()
+        }
+    })
 }
 
 export const createIdentity = (data: IIdentity) => (
     new Promise((resolve: Function, reject: Function) => {
         const identityCollection = (<IGlobal>global).db.collection('identities')
 
-        const createIdentityData: any = Object.assign({}, data)
+        const createIdentityData: any = Object.assign({ profile: { name: { first: '', last: '' } } }, data)
         createIdentityData.email = createIdentityData.email.toLowerCase()
         createIdentityData.createdAt = Date.now()
 
@@ -46,7 +52,6 @@ export const createIdentity = (data: IIdentity) => (
                 if (error) {
                     reject({ errorMessage: err.message })
                 }
-
                 resolve(result[0])
             })
         })
