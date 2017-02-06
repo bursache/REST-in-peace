@@ -10,15 +10,15 @@ import { deleteIdentity } from '../src/modules/identity/model/identity'
 
 import clearDatabase from './dbGc'
 
-after(function (done) {
+after((done) => {
     clearDatabase((err: any) => {
-        if(err){
+        if (err) {
             return done(err)
         }
 
         done()
     })
-});
+})
 
 describe('/', () => {
     const chai = require('chai')
@@ -98,6 +98,32 @@ describe('/identity', () => {
                 })
 
                 res.should.have.status(200)
+                done()
+            })
+    })
+
+
+    it('should return and failed validation', (done) => {
+        const mockSendData = {
+            email: `testUser+MONGOERROR${Math.floor((Math.random() * 100) + 1)}@test.com`,
+            password: '12345678',
+            profile: {
+                name: {
+                    first: 'ion',
+                    last: 123
+                }
+            }
+        }
+
+        chai.request(`http://localhost:${serverPort}`)
+            .post('/identity')
+            .send(mockSendData)
+            .end((err, res) => {
+                if (err) {
+                    res.should.have.status(400)
+                }
+
+                chai.expect(res.body.status).to.have.property('errorMessage').and.to.equal('Document failed validation')
                 done()
             })
     })

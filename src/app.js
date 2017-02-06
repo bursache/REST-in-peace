@@ -57,11 +57,12 @@ exports[true] =
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
 	const mongoConnetor_1 = __webpack_require__(14);
+	const identity_1 = __webpack_require__(10);
 	const error_util_1 = __webpack_require__(16);
 	const logger_util_1 = __webpack_require__(18);
 	const httpResponse_util_1 = __webpack_require__(21);
+	const restGlobal = global;
 	const initializeGlobalUtils = (callback) => {
-	    const restGlobal = global;
 	    restGlobal.errorUtil = error_util_1.default;
 	    restGlobal.loggerUtil = logger_util_1.default;
 	    restGlobal.httpResponseUtil = httpResponse_util_1.default;
@@ -69,7 +70,17 @@ exports[true] =
 	};
 	const connectToDatabase = (callback) => __awaiter(this, void 0, void 0, function* () {
 	    try {
-	        yield mongoConnetor_1.default();
+	        const db = yield mongoConnetor_1.default();
+	        restGlobal.db = db;
+	        callback();
+	    }
+	    catch (err) {
+	        callback(err);
+	    }
+	});
+	const initDBCollections = (callback) => __awaiter(this, void 0, void 0, function* () {
+	    try {
+	        yield identity_1.identityCollectionValidation();
 	        callback();
 	    }
 	    catch (err) {
@@ -88,6 +99,7 @@ exports[true] =
 	steed.waterfall([
 	    initializeGlobalUtils,
 	    connectToDatabase,
+	    initDBCollections,
 	    initializeServer
 	], (err) => {
 	    if (err) {
@@ -310,49 +322,80 @@ exports[true] =
 
 /***/ },
 /* 10 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
-	const mongoose = __webpack_require__(22);
-	const Schema = mongoose.Schema;
-	const definedIdentitySchema = new Schema({
-	    profile: {
-	        name: {
-	            first: { type: String },
-	            last: { type: String }
-	        }
-	    },
-	    email: {
-	        type: String,
-	        required: true,
-	        lowercase: true,
-	    },
-	    password: { type: String, required: true },
-	    createdAt: { type: Number, default: Date.now() }
-	}, {
-	    collection: 'identities'
-	});
-	let identitySchema;
-	try {
-	    identitySchema = mongoose.model('identities');
-	}
-	catch (err) {
-	    identitySchema = mongoose.model('identities', definedIdentitySchema);
-	}
-	exports.createIdentity = (data) => {
-	    const newIdentity = new identitySchema(data);
-	    return newIdentity.save();
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
 	};
+	const logMongoError = (error) => {
+	    global.loggerUtil().error(`Mongo: ${error.message}`);
+	};
+	exports.identityCollectionValidation = () => __awaiter(this, void 0, void 0, function* () {
+	    new Promise((resolve, reject) => {
+	        try {
+	            global.db.createCollection('identities', {}, (err) => {
+	                global.db.command({
+	                    collMod: 'identities',
+	                    validator: {
+	                        $and: [
+	                            { 'profile.name.first': { $type: 'string' } },
+	                            { 'profile.name.last': { $type: 'string' } },
+	                            { 'email': { $type: 'string', $exists: true } },
+	                            { 'password': { $type: 'string', $exists: true } },
+	                            { 'createdAt': { $type: 'number', $exists: true } }
+	                        ]
+	                    },
+	                    validationAction: 'error',
+	                    validationLevel: 'moderate'
+	                });
+	                resolve();
+	            });
+	        }
+	        catch (err) {
+	            logMongoError(err);
+	            reject();
+	        }
+	    });
+	});
+	exports.createIdentity = (data) => (new Promise((resolve, reject) => {
+	    const identityCollection = global.db.collection('identities');
+	    const createIdentityData = Object.assign({ profile: { name: { first: '', last: '' } } }, data);
+	    createIdentityData.email = createIdentityData.email.toLowerCase();
+	    createIdentityData.createdAt = Date.now();
+	    identityCollection.insertOne(createIdentityData, (err, doc) => {
+	        if (err) {
+	            logMongoError(err);
+	            reject({ errorMessage: err.message });
+	        }
+	        const query = {
+	            email: createIdentityData.email
+	        };
+	        identityCollection.find(query).limit(1).toArray((error, result) => {
+	            if (error) {
+	                reject({ errorMessage: err.message });
+	            }
+	            resolve(result[0]);
+	        });
+	    });
+	}));
 	exports.findIdentiyByEmail = (email) => (new Promise((resolve, reject) => {
 	    const query = {
 	        email: email.toLowerCase()
 	    };
-	    identitySchema.find(query).exec((err, result) => {
+	    const identityCollection = global.db.collection('identities');
+	    identityCollection.find(query).limit(1).toArray((err, result) => {
 	        if (err) {
-	            return reject(err);
+	            logMongoError(err);
+	            reject({ errorMessage: err.message });
 	        }
 	        if (result.length === 0) {
-	            return reject(global.errorUtil('NotFound'));
+	            reject(global.errorUtil('NotFound'));
 	        }
 	        resolve(result[0]);
 	    });
@@ -361,8 +404,10 @@ exports[true] =
 	    const query = {
 	        _id: identityId
 	    };
-	    identitySchema.remove(query, (err) => {
+	    const identityCollection = global.db.collection('identities');
+	    identityCollection.deleteOne(query, (err) => {
 	        if (err) {
+	            logMongoError(err);
 	            reject(err);
 	        }
 	        resolve(identityId);
@@ -446,30 +491,30 @@ exports[true] =
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongoose = __webpack_require__(22);
-	const bluebird = __webpack_require__(23);
+	const mongodb = __webpack_require__(15);
+	const MongoClient = mongodb.MongoClient;
 	const mongoURL = process.env.DB_URL;
-	const initializeDatabase = () => {
-	    mongoose.Promise = bluebird;
-	    return new Promise((resolve, reject) => {
-	        const connection = mongoose.createConnection(mongoURL);
-	        connection.on('open', () => {
-	            mongoose.connect(mongoURL);
-	            global.loggerUtil().info(`Connected to DB at ${mongoURL}`);
-	            resolve();
-	        });
-	        connection.on('error', (err) => {
+	const initializeDatabase = () => (new Promise((resolve, reject) => {
+	    MongoClient.connect(mongoURL, (err, db) => {
+	        if (err) {
 	            global.loggerUtil().error('Error on DB connection', err);
 	            reject();
-	        });
+	        }
+	        global.loggerUtil().info(`Connected to DB at ${mongoURL}`);
+	        resolve(db);
 	    });
-	};
+	}));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = initializeDatabase;
 
 
 /***/ },
-/* 15 */,
+/* 15 */
+/***/ function(module, exports) {
+
+	module.exports = require("mongodb");
+
+/***/ },
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -589,18 +634,6 @@ exports[true] =
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = httpResponse;
 
-
-/***/ },
-/* 22 */
-/***/ function(module, exports) {
-
-	module.exports = require("mongoose");
-
-/***/ },
-/* 23 */
-/***/ function(module, exports) {
-
-	module.exports = require("bluebird");
 
 /***/ }
 /******/ ]);

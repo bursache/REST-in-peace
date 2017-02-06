@@ -1,7 +1,8 @@
 interface IGlobal extends NodeJS.Global {
     errorUtil: Function
     loggerUtil: Function
-    httpResponseUtil: Function
+    httpResponseUtil: Function,
+    db: any
 }
 
 interface IError {
