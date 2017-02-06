@@ -103,14 +103,14 @@ describe('/identity', () => {
     })
 
 
-    it('should not create new identity receive mongo error', (done) => {
+    it('should return and failed validation', (done) => {
         const mockSendData = {
             email: `testUser+MONGOERROR@test.com`,
             password: '12345678',
             profile: {
                 name: {
                     first: 'ion',
-                    last: 'vasile'
+                    last: 123
                 }
             }
         }
@@ -119,9 +119,8 @@ describe('/identity', () => {
             .post('/identity')
             .send(mockSendData)
             .end((err, res) => {
-                if (err) {
-                    res.should.have.status(400)
-                }
+                res.should.have.status(400)
+                chai.expect(err).to.have.property('errorMessage').and.to.equal('Document failed validation')
 
                 done()
             })
