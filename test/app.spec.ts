@@ -12,7 +12,7 @@ import clearDatabase from './dbGc'
 
 after((done) => {
     clearDatabase((err: any) => {
-        if(err){
+        if (err) {
             return done(err)
         }
 
@@ -98,6 +98,31 @@ describe('/identity', () => {
                 })
 
                 res.should.have.status(200)
+                done()
+            })
+    })
+
+
+    it('should not create new identity receive mongo error', (done) => {
+        const mockSendData = {
+            email: `testUser+MONGOERROR@test.com`,
+            password: '12345678',
+            profile: {
+                name: {
+                    first: 'ion',
+                    last: 'vasile'
+                }
+            }
+        }
+
+        chai.request(`http://localhost:${serverPort}`)
+            .post('/identity')
+            .send(mockSendData)
+            .end((err, res) => {
+                if (err) {
+                    res.should.have.status(400)
+                }
+
                 done()
             })
     })

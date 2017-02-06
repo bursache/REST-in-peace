@@ -5,12 +5,15 @@ const logMongoError = (error: Error) => {
 
 export const identityCollectionValidation = () => {
     try {
-        (<IGlobal>global).db.createCollection('identities', {
+        (<IGlobal>global).db.command({
+            collMod: 'identities',
             validator: {
                 $and: [
+                    { 'profile.name.first': { $type: 'string' } },
+                    { 'profile.name.last': { $type: 'string' } },
                     { 'email': { $type: 'string', $exists: true } },
                     { 'password': { $type: 'string', $exists: true } },
-                    { 'createdAt': { $type: 'number', $exists: true } },
+                    { 'createdAt': { $type: 'number', $exists: true } }
                 ]
             },
             validationAction: 'error',
