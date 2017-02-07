@@ -132,7 +132,7 @@ exports[true] =
 	const sessionSettings = {
 	    secret: 'mega-secret-secret-key',
 	    store: new mongoStore({
-	        db: global.db,
+	        url: process.env.DB_URL,
 	        ttl: (1 * 60 * 60)
 	    }),
 	    name: 'sid',

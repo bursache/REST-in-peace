@@ -15,7 +15,7 @@ const mongoStore = connectMongo(expressSession)
 const sessionSettings = {
     secret: 'mega-secret-secret-key',
     store: new mongoStore({
-        db: (<IGlobal>global).db,
+        url: process.env.DB_URL,
         ttl: (1 * 60 * 60)
     }),
     name: 'sid',
