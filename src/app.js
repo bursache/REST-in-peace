@@ -121,18 +121,39 @@ exports[true] =
 	"use strict";
 	const express = __webpack_require__(3);
 	const bodyParser = __webpack_require__(4);
+	const connectMongo = __webpack_require__(23);
+	const expressSession = __webpack_require__(22);
 	const httpServerMiddlewares = __webpack_require__(5);
 	const routes_1 = __webpack_require__(6);
 	const routes_2 = __webpack_require__(12);
 	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
+	const mongoStore = connectMongo(expressSession);
+	const sessionSettings = {
+	    secret: 'mega-secret-secret-key',
+	    store: new mongoStore({
+	        db: global.db,
+	        ttl: (1 * 60 * 60)
+	    }),
+	    name: 'sid',
+	    resave: false,
+	    saveUninitialized: true,
+	    cookie: {
+	        path: '/',
+	        maxAge: 1 * 60 * 60 * 1000,
+	        httpOnly: false,
+	        secure: false
+	    }
+	};
 	const initializeHTTPServer = () => {
+	    server.set('trust proxy', 1);
 	    server.use(bodyParser.json({ limit: '50mb' }));
 	    server.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 	    server.use(httpServerMiddlewares.allowCrossDomain);
 	    server.use(httpServerMiddlewares.logRequest);
 	    server.use(routes_1.default);
 	    server.use(routes_2.default);
+	    server.use(expressSession(sessionSettings));
 	    return new Promise((resolve, reject) => {
 	        server.listen(serverPort, () => {
 	            global.loggerUtil().info(`Server is running on port ${serverPort}`);
@@ -634,6 +655,18 @@ exports[true] =
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = httpResponse;
 
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	module.exports = require("express-session");
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	module.exports = require("connect-mongo");
 
 /***/ }
 /******/ ]);

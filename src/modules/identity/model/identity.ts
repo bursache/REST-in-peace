@@ -21,6 +21,7 @@ export const identityCollectionValidation = async () => {
                     validationAction: 'error',
                     validationLevel: 'moderate'
                 })
+
                 resolve()
             })
         } catch (err) {
