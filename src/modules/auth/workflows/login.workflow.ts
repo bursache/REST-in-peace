@@ -1,10 +1,9 @@
-import { Request } from 'express-serve-static-core'
 import * as steed from 'steed'
 
 import { findIdentiyByEmail } from '../../identity/model/identity'
 import { passwordValidator } from '../../../utils/validator.util'
 
-export const loginWorkflow = (loginData: ILoginData, req: Request) => {
+export const loginWorkflow = (loginData: ILoginData, req: any) => (
     new Promise((resolve: Function, reject: Function) => {
         const checkIdentity = async(callback: Function) => {
             try {
@@ -26,7 +25,7 @@ export const loginWorkflow = (loginData: ILoginData, req: Request) => {
             }
         }
 
-        const createSession = async(identityData: any, callback: Function) => {
+        const createSession = (identityData: any, callback: Function) => {
             req.session.login(identityData)
 
             callback()
@@ -36,12 +35,12 @@ export const loginWorkflow = (loginData: ILoginData, req: Request) => {
             checkIdentity,
             checkIdentityPassword,
             createSession
-        ], (err) => {
+        ], (err: any) => {
             if (err) {
-                reject()
+                reject(err)
             }
 
             resolve()
         })
     })
-}
+)

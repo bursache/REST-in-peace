@@ -56,11 +56,11 @@ exports[true] =
 	};
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
-	const mongoConnetor_1 = __webpack_require__(14);
-	const identity_1 = __webpack_require__(10);
-	const error_util_1 = __webpack_require__(16);
-	const logger_util_1 = __webpack_require__(18);
-	const httpResponse_util_1 = __webpack_require__(21);
+	const mongoConnetor_1 = __webpack_require__(17);
+	const identity_1 = __webpack_require__(12);
+	const error_util_1 = __webpack_require__(19);
+	const logger_util_1 = __webpack_require__(21);
+	const httpResponse_util_1 = __webpack_require__(24);
 	const restGlobal = global;
 	const initializeGlobalUtils = (callback) => {
 	    restGlobal.errorUtil = error_util_1.default;
@@ -121,39 +121,21 @@ exports[true] =
 	"use strict";
 	const express = __webpack_require__(3);
 	const bodyParser = __webpack_require__(4);
-	const connectMongo = __webpack_require__(23);
-	const expressSession = __webpack_require__(22);
-	const httpServerMiddlewares = __webpack_require__(5);
-	const routes_1 = __webpack_require__(6);
-	const routes_2 = __webpack_require__(12);
+	const httpServerMiddlewares = __webpack_require__(7);
+	const sessionManager_1 = __webpack_require__(26);
+	const routes_1 = __webpack_require__(8);
+	const routes_2 = __webpack_require__(14);
 	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
-	const mongoStore = connectMongo(expressSession);
-	const sessionSettings = {
-	    secret: 'mega-secret-secret-key',
-	    store: new mongoStore({
-	        url: process.env.DB_URL,
-	        ttl: (1 * 60 * 60)
-	    }),
-	    name: 'sid',
-	    resave: false,
-	    saveUninitialized: true,
-	    cookie: {
-	        path: '/',
-	        maxAge: 1 * 60 * 60 * 1000,
-	        httpOnly: false,
-	        secure: false
-	    }
-	};
 	const initializeHTTPServer = () => {
 	    server.set('trust proxy', 1);
+	    sessionManager_1.sessionManager(server);
 	    server.use(bodyParser.json({ limit: '50mb' }));
 	    server.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 	    server.use(httpServerMiddlewares.allowCrossDomain);
 	    server.use(httpServerMiddlewares.logRequest);
 	    server.use(routes_1.default);
 	    server.use(routes_2.default);
-	    server.use(expressSession(sessionSettings));
 	    return new Promise((resolve, reject) => {
 	        server.listen(serverPort, () => {
 	            global.loggerUtil().info(`Server is running on port ${serverPort}`);
@@ -179,6 +161,18 @@ exports[true] =
 
 /***/ },
 /* 5 */
+/***/ function(module, exports) {
+
+	module.exports = require("connect-mongo");
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	module.exports = require("express-session");
+
+/***/ },
+/* 7 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -216,12 +210,12 @@ exports[true] =
 
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const post_handler_1 = __webpack_require__(7);
+	const post_handler_1 = __webpack_require__(9);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
 	routes.post('/identity', (req, res) => post_handler_1.postHandler(req, res));
@@ -230,7 +224,7 @@ exports[true] =
 
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -243,8 +237,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const identityCreation_workflow_1 = __webpack_require__(8);
-	const validator_util_1 = __webpack_require__(11);
+	const identityCreation_workflow_1 = __webpack_require__(10);
+	const validator_util_1 = __webpack_require__(13);
 	exports.postHandler = (req, res) => {
 	    const requestData = req.body;
 	    const validateData = (callback) => {
@@ -275,7 +269,7 @@ exports[true] =
 
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -288,8 +282,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const bcrypt = __webpack_require__(9);
-	const identity_1 = __webpack_require__(10);
+	const bcrypt = __webpack_require__(11);
+	const identity_1 = __webpack_require__(12);
 	const salt = bcrypt.genSaltSync(10);
 	exports.encodePassword = (password) => bcrypt.hashSync(password, salt);
 	exports.createIdentityWorklow = (identityData) => (new Promise((resolve, reject) => {
@@ -336,13 +330,13 @@ exports[true] =
 
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports) {
 
 	module.exports = require("bcrypt");
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -437,25 +431,35 @@ exports[true] =
 
 
 /***/ },
-/* 11 */
-/***/ function(module, exports) {
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	const bcrypt = __webpack_require__(11);
 	const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\.,;:\\s@\"]+)*)',
 	    '|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.',
 	    '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
 	    '[a-zA-Z]{2,}))$'].join(''));
 	exports.emailValidator = (email) => emailPattern.test(email);
 	exports.emailAndPasswordValidator = (data) => (data.email && data.password && exports.emailValidator(data.email) && data.password.length > 6);
+	exports.passwordValidator = (password, hash) => (new Promise((resolve, reject) => {
+	    bcrypt.compare(password, hash)
+	        .then((result) => {
+	        if (result === false) {
+	            reject();
+	        }
+	        resolve();
+	    });
+	}));
 
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const post_handler_1 = __webpack_require__(13);
+	const post_handler_1 = __webpack_require__(15);
 	const routes = express_1.Router();
 	routes.post('/auth/login', (req, res) => post_handler_1.postHandler(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -463,12 +467,21 @@ exports[true] =
 
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
 	const steed = __webpack_require__(1);
-	const validator_util_1 = __webpack_require__(11);
+	const validator_util_1 = __webpack_require__(13);
+	const login_workflow_1 = __webpack_require__(16);
 	exports.decodeData = (data) => {
 	    const debuffedData = Buffer.from(data, 'base64').toString();
 	    const loginData = debuffedData.split(':');
@@ -489,11 +502,17 @@ exports[true] =
 	        if (!validator_util_1.emailAndPasswordValidator(loginData)) {
 	            return callback({ err: global.errorUtil('MissingData') });
 	        }
-	        callback();
+	        callback(null, loginData);
 	    };
-	    const login = (callback) => {
-	        callback();
-	    };
+	    const login = (loginData, callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const loginInfo = yield login_workflow_1.loginWorkflow(loginData, req);
+	            callback(null, loginInfo);
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
 	    steed.waterfall([
 	        decodeRequestData,
 	        validateData,
@@ -508,11 +527,63 @@ exports[true] =
 
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongodb = __webpack_require__(15);
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
+	const steed = __webpack_require__(1);
+	const identity_1 = __webpack_require__(12);
+	const validator_util_1 = __webpack_require__(13);
+	exports.loginWorkflow = (loginData, req) => (new Promise((resolve, reject) => {
+	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const identityData = yield identity_1.findIdentiyByEmail(loginData.email);
+	            callback(null, identityData);
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
+	    const checkIdentityPassword = (identityData, callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            yield validator_util_1.passwordValidator(loginData.password, identityData.password);
+	            callback(null, identityData);
+	        }
+	        catch (err) {
+	            callback({ err: global.errorUtil('InvalidCredentials') });
+	        }
+	    });
+	    const createSession = (identityData, callback) => {
+	        req.session.login(identityData);
+	        callback();
+	    };
+	    steed.waterfall([
+	        checkIdentity,
+	        checkIdentityPassword,
+	        createSession
+	    ], (err) => {
+	        if (err) {
+	            reject(err);
+	        }
+	        resolve();
+	    });
+	}));
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const mongodb = __webpack_require__(18);
 	const MongoClient = mongodb.MongoClient;
 	const mongoURL = process.env.DB_URL;
 	const initializeDatabase = () => (new Promise((resolve, reject) => {
@@ -530,24 +601,24 @@ exports[true] =
 
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = require("mongodb");
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const errors = __webpack_require__(17);
+	const errors = __webpack_require__(20);
 	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = errorUtil;
 
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -566,12 +637,12 @@ exports[true] =
 	};
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(19);
-	const chalk = __webpack_require__(20);
+	const pino = __webpack_require__(22);
+	const chalk = __webpack_require__(23);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -629,19 +700,19 @@ exports[true] =
 
 
 /***/ },
-/* 19 */
+/* 22 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
 
 /***/ },
-/* 21 */
+/* 24 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -657,16 +728,45 @@ exports[true] =
 
 
 /***/ },
-/* 22 */
-/***/ function(module, exports) {
+/* 25 */,
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = require("express-session");
+	"use strict";
+	const expressSession = __webpack_require__(6);
+	const connectMongo = __webpack_require__(5);
+	const sessionManager = (server) => {
+	    expressSession.Session.prototype.login = (identity, callback) => {
+	        const req = this.req;
+	        req.session.regenerate((err) => {
+	            if (err) {
+	                callback(err);
+	            }
+	        });
+	        req.session.userInfo = identity;
+	        callback();
+	    };
+	    const mongoStore = connectMongo(expressSession);
+	    const sessionSettings = {
+	        secret: 'mega-secret-secret-key',
+	        store: new mongoStore({
+	            url: process.env.DB_URL,
+	            ttl: (1 * 60 * 60)
+	        }),
+	        name: 'sid',
+	        resave: false,
+	        saveUninitialized: true,
+	        cookie: {
+	            path: '/',
+	            maxAge: 1 * 60 * 60 * 1000,
+	            httpOnly: false,
+	            secure: false
+	        }
+	    };
+	    server.use(expressSession(sessionSettings));
+	};
+	exports.sessionManager = sessionManager;
 
-/***/ },
-/* 23 */
-/***/ function(module, exports) {
-
-	module.exports = require("connect-mongo");
 
 /***/ }
 /******/ ]);

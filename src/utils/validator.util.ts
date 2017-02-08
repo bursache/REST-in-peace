@@ -14,11 +14,11 @@ export const passwordValidator = (password: string, hash: string) => (
     new Promise((resolve: Function, reject: Function) => {
         bcrypt.compare(password, hash)
             .then((result: boolean) => {
-                if (!result) {
+                if (result === false) {
                     reject()
                 }
 
                 resolve()
             })
-    }
+    })
 )
