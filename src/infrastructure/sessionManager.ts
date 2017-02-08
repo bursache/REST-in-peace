@@ -1,4 +1,4 @@
-import * as expressSession from "express-session";
+import * as expressSession from 'express-session'
 import * as connectMongo from 'connect-mongo'
 
 const sessionManager = (server: any) => {
@@ -7,13 +7,13 @@ const sessionManager = (server: any) => {
 
         req.session.regenerate((err: any) => {
             if (err) {
-                callback(err)
+                return callback(err)
             }
         })
 
-        req.session.userInfo = identity
+        req.session.identity = identity
 
-        callback();
+        return callback()
     }
 
     const mongoStore = connectMongo(expressSession)

@@ -17,30 +17,38 @@ export const loginWorkflow = (loginData: ILoginData, req: any) => (
 
         const checkIdentityPassword = async(identityData: any, callback: Function) => {
             try {
-                await passwordValidator(loginData.password, identityData.password)
+                const isValidPassword = await passwordValidator(loginData.password, identityData.password)
 
-                callback(null, identityData)
+                if (isValidPassword) {
+                    callback(null, identityData)
+                } else {
+                    callback({err: (<IGlobal>global).errorUtil('InvalidCredentials')})
+                }
             } catch (err) {
                 callback({err: (<IGlobal>global).errorUtil('InvalidCredentials')})
             }
         }
 
         const createSession = (identityData: any, callback: Function) => {
-            req.session.login(identityData)
+            req.session.login(identityData, (err: Error) => {
+                if (err) {
+                    return callback(err)
+                }
 
-            callback()
+                return callback()
+            })
         }
 
         steed.waterfall([
             checkIdentity,
             checkIdentityPassword,
             createSession
-        ], (err: any) => {
+        ], (err: Error) => {
             if (err) {
                 reject(err)
+            } else {
+                resolve()
             }
-
-            resolve()
         })
     })
 )

@@ -1,7 +1,5 @@
 import { Request, Response } from 'express-serve-static-core'
-
 import * as steed from 'steed'
-
 import { emailAndPasswordValidator } from '../../../utils/validator.util'
 import { loginWorkflow } from '../workflows/login.workflow'
 
@@ -15,15 +13,15 @@ export const decodeData = (data: string): ILoginData => {
     }
 }
 
-export const postHandler = (req: Request, res: Response) => {
-    const requesData = req.body
+const loginHandler = (req: Request, res: Response) => {
+    const requestData = req.body
 
     const decodeRequestData = (callback: Function) => {
-        if (!requesData.up) {
+        if (!requestData.up) {
             return callback({ err: (<IGlobal>global).errorUtil('MissingData') })
         }
 
-        callback(null, decodeData(requesData.up))
+        callback(null, decodeData(requestData.up))
     }
 
     const validateData = (loginData: ILoginData, callback: Function) => {
@@ -40,7 +38,7 @@ export const postHandler = (req: Request, res: Response) => {
 
             callback(null, loginInfo)
         } catch (err) {
-            callback(err)
+            callback()
         }
     }
 
@@ -55,5 +53,14 @@ export const postHandler = (req: Request, res: Response) => {
 
         return res.status(200).send((<IGlobal>global).httpResponseUtil({ payload: result }))
     })
-
 }
+
+const logoutHandler = (req: any, res: Response) => {
+    if (req.session) {
+        req.session.destroy()
+    }
+
+    return res.status(200).send((<IGlobal>global).httpResponseUtil({ payload: {} }))
+}
+
+export {loginHandler, logoutHandler}

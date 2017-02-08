@@ -442,15 +442,7 @@ exports[true] =
 	    '[a-zA-Z]{2,}))$'].join(''));
 	exports.emailValidator = (email) => emailPattern.test(email);
 	exports.emailAndPasswordValidator = (data) => (data.email && data.password && exports.emailValidator(data.email) && data.password.length > 6);
-	exports.passwordValidator = (password, hash) => (new Promise((resolve, reject) => {
-	    bcrypt.compare(password, hash)
-	        .then((result) => {
-	        if (result === false) {
-	            reject();
-	        }
-	        resolve();
-	    });
-	}));
+	exports.passwordValidator = (password, hash) => bcrypt.compare(password, hash);
 
 
 /***/ },
@@ -459,9 +451,10 @@ exports[true] =
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const post_handler_1 = __webpack_require__(15);
+	const postHandler = __webpack_require__(15);
 	const routes = express_1.Router();
-	routes.post('/auth/login', (req, res) => post_handler_1.postHandler(req, res));
+	routes.post('/auth/login', (req, res) => postHandler.loginHandler(req, res));
+	routes.post('/auth/logout', (req, res) => postHandler.logoutHandler(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = routes;
 
@@ -490,13 +483,13 @@ exports[true] =
 	        password: loginData[1]
 	    };
 	};
-	exports.postHandler = (req, res) => {
-	    const requesData = req.body;
+	const loginHandler = (req, res) => {
+	    const requestData = req.body;
 	    const decodeRequestData = (callback) => {
-	        if (!requesData.up) {
+	        if (!requestData.up) {
 	            return callback({ err: global.errorUtil('MissingData') });
 	        }
-	        callback(null, exports.decodeData(requesData.up));
+	        callback(null, exports.decodeData(requestData.up));
 	    };
 	    const validateData = (loginData, callback) => {
 	        if (!validator_util_1.emailAndPasswordValidator(loginData)) {
@@ -510,7 +503,7 @@ exports[true] =
 	            callback(null, loginInfo);
 	        }
 	        catch (err) {
-	            callback(err);
+	            callback();
 	        }
 	    });
 	    steed.waterfall([
@@ -524,6 +517,14 @@ exports[true] =
 	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
 	    });
 	};
+	exports.loginHandler = loginHandler;
+	const logoutHandler = (req, res) => {
+	    if (req.session) {
+	        req.session.destroy();
+	    }
+	    return res.status(200).send(global.httpResponseUtil({ payload: {} }));
+	};
+	exports.logoutHandler = logoutHandler;
 
 
 /***/ },
@@ -554,16 +555,25 @@ exports[true] =
 	    });
 	    const checkIdentityPassword = (identityData, callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
-	            yield validator_util_1.passwordValidator(loginData.password, identityData.password);
-	            callback(null, identityData);
+	            const isValidPassword = yield validator_util_1.passwordValidator(loginData.password, identityData.password);
+	            if (isValidPassword) {
+	                callback(null, identityData);
+	            }
+	            else {
+	                callback({ err: global.errorUtil('InvalidCredentials') });
+	            }
 	        }
 	        catch (err) {
 	            callback({ err: global.errorUtil('InvalidCredentials') });
 	        }
 	    });
 	    const createSession = (identityData, callback) => {
-	        req.session.login(identityData);
-	        callback();
+	        req.session.login(identityData, (err) => {
+	            if (err) {
+	                return callback(err);
+	            }
+	            return callback();
+	        });
 	    };
 	    steed.waterfall([
 	        checkIdentity,
@@ -573,7 +583,9 @@ exports[true] =
 	        if (err) {
 	            reject(err);
 	        }
-	        resolve();
+	        else {
+	            resolve();
+	        }
 	    });
 	}));
 
@@ -740,11 +752,11 @@ exports[true] =
 	        const req = this.req;
 	        req.session.regenerate((err) => {
 	            if (err) {
-	                callback(err);
+	                return callback(err);
 	            }
 	        });
-	        req.session.userInfo = identity;
-	        callback();
+	        req.session.identity = identity;
+	        return callback();
 	    };
 	    const mongoStore = connectMongo(expressSession);
 	    const sessionSettings = {
