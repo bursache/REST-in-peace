@@ -4,7 +4,7 @@ import * as steed from 'steed'
 
 import { createIdentityWorklow } from '../workflows/identityCreation.workflow'
 
-import { emailValidator, emailAndPasswordValidator } from '../../../utils/validator.util'
+import { emailAndPasswordValidator } from '../../../utils/validator.util'
 
 export const postHandler = (req: Request, res: Response) => {
     const requestData: IIdentity = req.body

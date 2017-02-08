@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt'
 
 import { createIdentity, findIdentiyByEmail } from '../model/identity'
 
-const salt = bcrypt.genSaltSync(10)
+const salt = bcrypt.genSaltSync(16)
 export const encodePassword = (password: string): string => bcrypt.hashSync(password, salt)
 
 export const createIdentityWorklow = (identityData: IIdentity) => (

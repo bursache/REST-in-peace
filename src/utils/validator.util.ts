@@ -1,3 +1,5 @@
+import * as bcrypt from 'bcrypt'
+
 const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\.,;:\\s@\"]+)*)',
     '|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.',
     '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
@@ -7,3 +9,16 @@ export const emailValidator = (email: string): boolean => emailPattern.test(emai
 
 export const emailAndPasswordValidator = (data: ILoginData): boolean =>
     (data.email && data.password && emailValidator(data.email) && data.password.length > 6)
+
+export const passwordValidator = (password: string, hash: string) => (
+    new Promise((resolve: Function, reject: Function) => {
+        bcrypt.compare(password, hash)
+            .then((result: boolean) => {
+                if (!result) {
+                    reject()
+                }
+
+                resolve()
+            })
+    }
+)

@@ -2,7 +2,8 @@ import { Request, Response } from 'express-serve-static-core'
 
 import * as steed from 'steed'
 
-import { emailValidator, emailAndPasswordValidator } from '../../../utils/validator.util'
+import { emailAndPasswordValidator } from '../../../utils/validator.util'
+import { loginWorkflow } from '../workflows/login.workflow'
 
 export const decodeData = (data: string): ILoginData => {
     const debuffedData = Buffer.from(data, 'base64').toString()
@@ -30,11 +31,17 @@ export const postHandler = (req: Request, res: Response) => {
             return callback({ err: (<IGlobal>global).errorUtil('MissingData') })
         }
 
-        callback()
+        callback(null, loginData)
     }
 
-    const login = (callback: Function) => {
-        callback()
+    const login = async (loginData: ILoginData, callback: Function) => {
+        try {
+            const loginInfo = await loginWorkflow(loginData, req)
+
+            callback(null, loginInfo)
+        } catch (err) {
+            callback(err)
+        }
     }
 
     steed.waterfall([

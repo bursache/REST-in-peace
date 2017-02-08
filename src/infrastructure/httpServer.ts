@@ -27,7 +27,9 @@ const sessionSettings = {
         httpOnly: false,
         secure: false
     }
-}
+};
+
+(<any>expressSession).Session.prototype.login = (identity: any) => this.identityInfo = identity
 
 const initializeHTTPServer = () => {
     server.set('trust proxy', 1)
