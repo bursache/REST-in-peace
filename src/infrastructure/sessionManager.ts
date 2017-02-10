@@ -2,16 +2,14 @@ import * as expressSession from 'express-session'
 import * as connectMongo from 'connect-mongo'
 
 const sessionManager = (server: any) => {
-    (<any>expressSession).Session.prototype.login = (identity: any, callback: Function) => {
-        const req = this.req
-
-        req.session.regenerate((err: any) => {
+    (<any>expressSession).Session.prototype.login = (identity: any, request: any, callback: Function) => {
+        request.session.regenerate((err: any) => {
             if (err) {
                 return callback(err)
             }
         })
 
-        req.session.identity = identity
+        request.session.identity = identity
 
         return callback()
     }

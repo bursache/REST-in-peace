@@ -5,7 +5,7 @@ import { passwordValidator } from '../../../utils/validator.util'
 
 export const loginWorkflow = (loginData: ILoginData, req: any) => (
     new Promise((resolve: Function, reject: Function) => {
-        const checkIdentity = async(callback: Function) => {
+        const checkIdentity = async (callback: Function) => {
             try {
                 const identityData = await findIdentiyByEmail(loginData.email)
 
@@ -30,7 +30,7 @@ export const loginWorkflow = (loginData: ILoginData, req: any) => (
         }
 
         const createSession = (identityData: any, callback: Function) => {
-            req.session.login(identityData, (err: Error) => {
+            req.session.login(identityData, req, (err: Error) => {
                 if (err) {
                     return callback(err)
                 }

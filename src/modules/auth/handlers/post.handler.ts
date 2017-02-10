@@ -38,7 +38,7 @@ const loginHandler = (req: Request, res: Response) => {
 
             callback(null, loginInfo)
         } catch (err) {
-            callback()
+            callback(err)
         }
     }
 

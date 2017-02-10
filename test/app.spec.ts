@@ -134,12 +134,76 @@ describe('/auth/login', () => {
     const should = chai.should()
     chai.use(chaiHttp)
 
-    it('should 200 on login', (done) => {
+    const mockSendData = {
+        email: `testUser+${Math.floor((Math.random() * 100) + 1)}@test.com`,
+        password: '12345678'
+    }
+
+    it('should return 200 on POST identity', (done) => {
+        chai.request(`http://localhost:${serverPort}`)
+            .post('/identity')
+            .send(mockSendData)
+            .end((err, res) => {
+                if (err) {
+                    return done(err)
+                }
+
+                done()
+            })
+    })
+
+    it('should return 200 on POST auth/login', (done) => {
+        const mockLoginData = {
+            up: new Buffer(mockSendData.email + ':' + mockSendData.password).toString('base64')
+        }
+
         chai.request(`http://localhost:${serverPort}`)
             .post('/auth/login')
-            .send({})
+            .send(mockLoginData)
             .end((err, res) => {
-                res.should.have.status(400)
+                if (err) {
+                    return done(err)
+                }
+
+                res.should.have.status(200)
+
+                done()
+            })
+    })
+
+    it('should return 400 on auth/login when no data is send', (done) => {
+        const mockLoginData = {
+            up: new Buffer(':').toString('base64')
+        }
+
+        chai.request(`http://localhost:${serverPort}`)
+            .post('/auth/login')
+            .send(mockLoginData)
+            .end((err, res) => {
+                if (err) {
+                    res.should.have.status(400)
+                }
+
+                chai.expect(res.body.status).to.have.property('errorMessage').and.to.equal('Some data is missing')
+
+                done()
+            })
+    })
+
+    it('should return 400 on auth/login when password is invalid', (done) => {
+        const mockLoginData = {
+            up: new Buffer(mockSendData.email + ':wrongpassword').toString('base64')
+        }
+
+        chai.request(`http://localhost:${serverPort}`)
+            .post('/auth/login')
+            .send(mockLoginData)
+            .end((err, res) => {
+                if (err) {
+                    res.should.have.status(400)
+                }
+
+                chai.expect(res.body.status).to.have.property('errorMessage').and.to.equal('Invalid credentials')
 
                 done()
             })

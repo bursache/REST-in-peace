@@ -56,11 +56,11 @@ exports[true] =
 	};
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
-	const mongoConnetor_1 = __webpack_require__(17);
-	const identity_1 = __webpack_require__(12);
-	const error_util_1 = __webpack_require__(19);
-	const logger_util_1 = __webpack_require__(21);
-	const httpResponse_util_1 = __webpack_require__(24);
+	const mongoConnetor_1 = __webpack_require__(18);
+	const identity_1 = __webpack_require__(13);
+	const error_util_1 = __webpack_require__(20);
+	const logger_util_1 = __webpack_require__(22);
+	const httpResponse_util_1 = __webpack_require__(25);
 	const restGlobal = global;
 	const initializeGlobalUtils = (callback) => {
 	    restGlobal.errorUtil = error_util_1.default;
@@ -121,10 +121,10 @@ exports[true] =
 	"use strict";
 	const express = __webpack_require__(3);
 	const bodyParser = __webpack_require__(4);
-	const httpServerMiddlewares = __webpack_require__(7);
-	const sessionManager_1 = __webpack_require__(26);
-	const routes_1 = __webpack_require__(8);
-	const routes_2 = __webpack_require__(14);
+	const httpServerMiddlewares = __webpack_require__(5);
+	const sessionManager_1 = __webpack_require__(6);
+	const routes_1 = __webpack_require__(9);
+	const routes_2 = __webpack_require__(15);
 	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
 	const initializeHTTPServer = () => {
@@ -163,18 +163,6 @@ exports[true] =
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = require("connect-mongo");
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	module.exports = require("express-session");
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
 	"use strict";
 	const allowCrossDomain = (req, res, next) => {
 	    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -210,12 +198,63 @@ exports[true] =
 
 
 /***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const expressSession = __webpack_require__(7);
+	const connectMongo = __webpack_require__(8);
+	const sessionManager = (server) => {
+	    expressSession.Session.prototype.login = (identity, request, callback) => {
+	        request.session.regenerate((err) => {
+	            if (err) {
+	                return callback(err);
+	            }
+	        });
+	        request.session.identity = identity;
+	        return callback();
+	    };
+	    const mongoStore = connectMongo(expressSession);
+	    const sessionSettings = {
+	        secret: 'mega-secret-secret-key',
+	        store: new mongoStore({
+	            url: process.env.DB_URL,
+	            ttl: (1 * 60 * 60)
+	        }),
+	        name: 'sid',
+	        resave: false,
+	        saveUninitialized: true,
+	        cookie: {
+	            path: '/',
+	            maxAge: 1 * 60 * 60 * 1000,
+	            httpOnly: false,
+	            secure: false
+	        }
+	    };
+	    server.use(expressSession(sessionSettings));
+	};
+	exports.sessionManager = sessionManager;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	module.exports = require("express-session");
+
+/***/ },
 /* 8 */
+/***/ function(module, exports) {
+
+	module.exports = require("connect-mongo");
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const post_handler_1 = __webpack_require__(9);
+	const post_handler_1 = __webpack_require__(10);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
 	routes.post('/identity', (req, res) => post_handler_1.postHandler(req, res));
@@ -224,7 +263,7 @@ exports[true] =
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -237,8 +276,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const identityCreation_workflow_1 = __webpack_require__(10);
-	const validator_util_1 = __webpack_require__(13);
+	const identityCreation_workflow_1 = __webpack_require__(11);
+	const validator_util_1 = __webpack_require__(14);
 	exports.postHandler = (req, res) => {
 	    const requestData = req.body;
 	    const validateData = (callback) => {
@@ -269,7 +308,7 @@ exports[true] =
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -282,8 +321,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const bcrypt = __webpack_require__(11);
-	const identity_1 = __webpack_require__(12);
+	const bcrypt = __webpack_require__(12);
+	const identity_1 = __webpack_require__(13);
 	const salt = bcrypt.genSaltSync(10);
 	exports.encodePassword = (password) => bcrypt.hashSync(password, salt);
 	exports.createIdentityWorklow = (identityData) => (new Promise((resolve, reject) => {
@@ -330,13 +369,13 @@ exports[true] =
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = require("bcrypt");
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -431,11 +470,11 @@ exports[true] =
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const bcrypt = __webpack_require__(11);
+	const bcrypt = __webpack_require__(12);
 	const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\.,;:\\s@\"]+)*)',
 	    '|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.',
 	    '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
@@ -446,12 +485,12 @@ exports[true] =
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const postHandler = __webpack_require__(15);
+	const postHandler = __webpack_require__(16);
 	const routes = express_1.Router();
 	routes.post('/auth/login', (req, res) => postHandler.loginHandler(req, res));
 	routes.post('/auth/logout', (req, res) => postHandler.logoutHandler(req, res));
@@ -460,7 +499,7 @@ exports[true] =
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -473,8 +512,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const validator_util_1 = __webpack_require__(13);
-	const login_workflow_1 = __webpack_require__(16);
+	const validator_util_1 = __webpack_require__(14);
+	const login_workflow_1 = __webpack_require__(17);
 	exports.decodeData = (data) => {
 	    const debuffedData = Buffer.from(data, 'base64').toString();
 	    const loginData = debuffedData.split(':');
@@ -503,7 +542,7 @@ exports[true] =
 	            callback(null, loginInfo);
 	        }
 	        catch (err) {
-	            callback();
+	            callback(err);
 	        }
 	    });
 	    steed.waterfall([
@@ -528,7 +567,7 @@ exports[true] =
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -541,8 +580,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const identity_1 = __webpack_require__(12);
-	const validator_util_1 = __webpack_require__(13);
+	const identity_1 = __webpack_require__(13);
+	const validator_util_1 = __webpack_require__(14);
 	exports.loginWorkflow = (loginData, req) => (new Promise((resolve, reject) => {
 	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
@@ -568,7 +607,7 @@ exports[true] =
 	        }
 	    });
 	    const createSession = (identityData, callback) => {
-	        req.session.login(identityData, (err) => {
+	        req.session.login(identityData, req, (err) => {
 	            if (err) {
 	                return callback(err);
 	            }
@@ -591,11 +630,11 @@ exports[true] =
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongodb = __webpack_require__(18);
+	const mongodb = __webpack_require__(19);
 	const MongoClient = mongodb.MongoClient;
 	const mongoURL = process.env.DB_URL;
 	const initializeDatabase = () => (new Promise((resolve, reject) => {
@@ -613,24 +652,24 @@ exports[true] =
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	module.exports = require("mongodb");
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const errors = __webpack_require__(20);
+	const errors = __webpack_require__(21);
 	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = errorUtil;
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -649,12 +688,12 @@ exports[true] =
 	};
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(22);
-	const chalk = __webpack_require__(23);
+	const pino = __webpack_require__(23);
+	const chalk = __webpack_require__(24);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -712,19 +751,19 @@ exports[true] =
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -737,47 +776,6 @@ exports[true] =
 	});
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = httpResponse;
-
-
-/***/ },
-/* 25 */,
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	const expressSession = __webpack_require__(6);
-	const connectMongo = __webpack_require__(5);
-	const sessionManager = (server) => {
-	    expressSession.Session.prototype.login = (identity, callback) => {
-	        const req = this.req;
-	        req.session.regenerate((err) => {
-	            if (err) {
-	                return callback(err);
-	            }
-	        });
-	        req.session.identity = identity;
-	        return callback();
-	    };
-	    const mongoStore = connectMongo(expressSession);
-	    const sessionSettings = {
-	        secret: 'mega-secret-secret-key',
-	        store: new mongoStore({
-	            url: process.env.DB_URL,
-	            ttl: (1 * 60 * 60)
-	        }),
-	        name: 'sid',
-	        resave: false,
-	        saveUninitialized: true,
-	        cookie: {
-	            path: '/',
-	            maxAge: 1 * 60 * 60 * 1000,
-	            httpOnly: false,
-	            secure: false
-	        }
-	    };
-	    server.use(expressSession(sessionSettings));
-	};
-	exports.sessionManager = sessionManager;
 
 
 /***/ }
