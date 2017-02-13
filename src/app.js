@@ -121,6 +121,7 @@ exports[true] =
 	"use strict";
 	const express = __webpack_require__(3);
 	const bodyParser = __webpack_require__(4);
+	const helmet = __webpack_require__(29);
 	const httpServerMiddlewares = __webpack_require__(5);
 	const sessionManager_1 = __webpack_require__(6);
 	const routes_1 = __webpack_require__(9);
@@ -135,6 +136,7 @@ exports[true] =
 	    server.use(httpServerMiddlewares.allowCrossDomain);
 	    server.use(httpServerMiddlewares.logRequest);
 	    server.use(httpServerMiddlewares.validateSession);
+	    server.use(helmet());
 	    server.use(routes_1.default);
 	    server.use(routes_2.default);
 	    return new Promise((resolve, reject) => {
@@ -891,6 +893,12 @@ exports[true] =
 /***/ function(module, exports) {
 
 	module.exports = require("jsonwebtoken");
+
+/***/ },
+/* 29 */
+/***/ function(module, exports) {
+
+	module.exports = require("helmet");
 
 /***/ }
 /******/ ]);

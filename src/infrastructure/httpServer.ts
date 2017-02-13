@@ -1,5 +1,6 @@
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
+import * as helmet from 'helmet'
 
 import * as httpServerMiddlewares from '../infrastructure/middlewares'
 import { sessionManager } from '../infrastructure/sessionManager'
@@ -20,6 +21,7 @@ const initializeHTTPServer = () => {
     server.use(httpServerMiddlewares.allowCrossDomain)
     server.use(httpServerMiddlewares.logRequest)
     server.use(httpServerMiddlewares.validateSession)
+    server.use(helmet())
     server.use(identityRoutes)
     server.use(authRoutes)
 
