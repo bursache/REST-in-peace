@@ -34,4 +34,26 @@ const logRequest = (req: any, res: Response, next: NextFunction) => {
     }
 }
 
-export {allowCrossDomain, logRequest}
+const validateSession =  (req: any, res: Response, next: NextFunction) => {
+    const unsafeRoutes = [{
+        route: '/',
+        method: 'GET'
+    }, {
+        route: '/identity',
+        method: 'POST'
+    }, {
+        route: '/auth/login',
+        method: 'POST'
+    }]
+
+    let isUnsafeRoute = unsafeRoutes.filter((unsafeRoute: any) =>
+        unsafeRoute.route === req.url && unsafeRoute.method === req.method).length === 0
+
+    if (isUnsafeRoute && req.session && !req.session.identity) {
+            res.status(400).send((<IGlobal>global).httpResponseUtil({ err: (<IGlobal>global).errorUtil('BadRequest') }))
+    } else {
+        next()
+    }
+}
+
+export { allowCrossDomain, logRequest, validateSession }

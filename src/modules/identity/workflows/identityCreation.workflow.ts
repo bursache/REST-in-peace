@@ -19,9 +19,13 @@ export const createIdentityWorklow = (identityData: IIdentity) => (
 
         const checkIdentity = async (callback: Function) => {
             try {
-                await findIdentiyByEmail(sendIdentityData.email)
+                const foundIdentity = await findIdentiyByEmail(sendIdentityData.email)
 
-                callback({ err: (<IGlobal>global).errorUtil() })
+                if (foundIdentity) {
+                    return callback({ err: (<IGlobal>global).errorUtil('BadRequest') })
+                }
+
+                callback()
             } catch (err) {
                 if (err.errorMessage === 'Resource not found') {
                     return callback()

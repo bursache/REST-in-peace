@@ -56,11 +56,11 @@ exports[true] =
 	};
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
-	const mongoConnetor_1 = __webpack_require__(18);
+	const mongoConnetor_1 = __webpack_require__(20);
 	const identity_1 = __webpack_require__(13);
-	const error_util_1 = __webpack_require__(20);
-	const logger_util_1 = __webpack_require__(22);
-	const httpResponse_util_1 = __webpack_require__(25);
+	const error_util_1 = __webpack_require__(22);
+	const logger_util_1 = __webpack_require__(24);
+	const httpResponse_util_1 = __webpack_require__(27);
 	const restGlobal = global;
 	const initializeGlobalUtils = (callback) => {
 	    restGlobal.errorUtil = error_util_1.default;
@@ -124,7 +124,7 @@ exports[true] =
 	const httpServerMiddlewares = __webpack_require__(5);
 	const sessionManager_1 = __webpack_require__(6);
 	const routes_1 = __webpack_require__(9);
-	const routes_2 = __webpack_require__(15);
+	const routes_2 = __webpack_require__(17);
 	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
 	const initializeHTTPServer = () => {
@@ -134,6 +134,7 @@ exports[true] =
 	    server.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 	    server.use(httpServerMiddlewares.allowCrossDomain);
 	    server.use(httpServerMiddlewares.logRequest);
+	    server.use(httpServerMiddlewares.validateSession);
 	    server.use(routes_1.default);
 	    server.use(routes_2.default);
 	    return new Promise((resolve, reject) => {
@@ -195,6 +196,26 @@ exports[true] =
 	    }
 	};
 	exports.logRequest = logRequest;
+	const validateSession = (req, res, next) => {
+	    const unsafeRoutes = [{
+	            route: '/',
+	            method: 'GET'
+	        }, {
+	            route: '/identity',
+	            method: 'POST'
+	        }, {
+	            route: '/auth/login',
+	            method: 'POST'
+	        }];
+	    let isUnsafeRoute = unsafeRoutes.filter((unsafeRoute) => unsafeRoute.route === req.url && unsafeRoute.method === req.method).length === 0;
+	    if (isUnsafeRoute && req.session && !req.session.identity) {
+	        res.status(400).send(global.httpResponseUtil({ err: global.errorUtil('BadRequest') }));
+	    }
+	    else {
+	        next();
+	    }
+	};
+	exports.validateSession = validateSession;
 
 
 /***/ },
@@ -255,9 +276,11 @@ exports[true] =
 	"use strict";
 	const express_1 = __webpack_require__(3);
 	const post_handler_1 = __webpack_require__(10);
+	const get_handler_1 = __webpack_require__(15);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
 	routes.post('/identity', (req, res) => post_handler_1.postHandler(req, res));
+	routes.get('/identity', (req, res) => get_handler_1.getHandler(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = routes;
 
@@ -334,8 +357,11 @@ exports[true] =
 	    };
 	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
-	            yield identity_1.findIdentiyByEmail(sendIdentityData.email);
-	            callback({ err: global.errorUtil() });
+	            const foundIdentity = yield identity_1.findIdentiyByEmail(sendIdentityData.email);
+	            if (foundIdentity) {
+	                return callback({ err: global.errorUtil('BadRequest') });
+	            }
+	            callback();
 	        }
 	        catch (err) {
 	            if (err.errorMessage === 'Resource not found') {
@@ -489,13 +515,43 @@ exports[true] =
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const express_1 = __webpack_require__(3);
-	const postHandler = __webpack_require__(16);
-	const routes = express_1.Router();
-	routes.post('/auth/login', (req, res) => postHandler.loginHandler(req, res));
-	routes.post('/auth/logout', (req, res) => postHandler.logoutHandler(req, res));
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = routes;
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
+	const steed = __webpack_require__(1);
+	const getIdentity_workflow_1 = __webpack_require__(16);
+	exports.getHandler = (req, res) => {
+	    const getIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const identity = yield getIdentity_workflow_1.getIdentityWorkflow(req);
+	            callback(null, identity);
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
+	    const mapResponse = (identity, callback) => {
+	        const response = {
+	            identityId: identity['_id'].toString(),
+	            profile: identity['profile']
+	        };
+	        callback(null, response);
+	    };
+	    steed.waterfall([
+	        getIdentity,
+	        mapResponse
+	    ], (err, result) => {
+	        if (err) {
+	            return res.status(400).send(global.httpResponseUtil(err));
+	        }
+	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
+	    });
+	};
 
 
 /***/ },
@@ -511,9 +567,58 @@ exports[true] =
 	        step((generator = generator.apply(thisArg, _arguments || [])).next());
 	    });
 	};
+	const identity_1 = __webpack_require__(13);
+	exports.getIdentityWorkflow = (req) => (new Promise((resolve, reject) => {
+	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            const identityData = yield identity_1.findIdentiyByEmail(req.session.identity.email);
+	            callback(null, identityData);
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
+	    checkIdentity((err, identityData) => {
+	        if (err) {
+	            reject(err);
+	        }
+	        else {
+	            resolve(identityData);
+	        }
+	    });
+	}));
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const express_1 = __webpack_require__(3);
+	const postHandler = __webpack_require__(18);
+	const routes = express_1.Router();
+	routes.post('/auth/login', (req, res) => postHandler.loginHandler(req, res));
+	routes.post('/auth/logout', (req, res) => postHandler.logoutHandler(req, res));
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = routes;
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
 	const steed = __webpack_require__(1);
 	const validator_util_1 = __webpack_require__(14);
-	const login_workflow_1 = __webpack_require__(17);
+	const login_workflow_1 = __webpack_require__(19);
 	exports.decodeData = (data) => {
 	    const debuffedData = Buffer.from(data, 'base64').toString();
 	    const loginData = debuffedData.split(':');
@@ -567,7 +672,7 @@ exports[true] =
 
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -630,11 +735,11 @@ exports[true] =
 
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongodb = __webpack_require__(19);
+	const mongodb = __webpack_require__(21);
 	const MongoClient = mongodb.MongoClient;
 	const mongoURL = process.env.DB_URL;
 	const initializeDatabase = () => (new Promise((resolve, reject) => {
@@ -652,24 +757,24 @@ exports[true] =
 
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports) {
 
 	module.exports = require("mongodb");
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const errors = __webpack_require__(21);
+	const errors = __webpack_require__(23);
 	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = errorUtil;
 
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -688,12 +793,12 @@ exports[true] =
 	};
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(23);
-	const chalk = __webpack_require__(24);
+	const pino = __webpack_require__(25);
+	const chalk = __webpack_require__(26);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -751,32 +856,41 @@ exports[true] =
 
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
 
 /***/ },
-/* 25 */
-/***/ function(module, exports) {
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const httpResponse = (response) => ({
-	    status: {
-	        errorMessage: response.err ? response.err.errorMessage : '',
-	        success: response.err ? false : true,
-	    },
-	    payload: response.err ? {} : response.payload
-	});
+	const jwt = __webpack_require__(28);
+	const httpResponse = (response) => {
+	    return jwt.sign({
+	        status: {
+	            errorMessage: response.err ? response.err.errorMessage : '',
+	            success: response.err ? false : true,
+	        },
+	        payload: response.err ? {} : response.payload
+	    }, process.env.JWT_KEY);
+	};
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = httpResponse;
 
+
+/***/ },
+/* 28 */
+/***/ function(module, exports) {
+
+	module.exports = require("jsonwebtoken");
 
 /***/ }
 /******/ ]);

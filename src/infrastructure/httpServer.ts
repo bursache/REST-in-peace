@@ -19,6 +19,7 @@ const initializeHTTPServer = () => {
 
     server.use(httpServerMiddlewares.allowCrossDomain)
     server.use(httpServerMiddlewares.logRequest)
+    server.use(httpServerMiddlewares.validateSession)
     server.use(identityRoutes)
     server.use(authRoutes)
 
