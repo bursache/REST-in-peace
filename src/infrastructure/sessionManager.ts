@@ -16,7 +16,7 @@ const sessionManager = (server: any) => {
 
     const mongoStore = connectMongo(expressSession)
     const sessionSettings = {
-        secret: 'mega-secret-secret-key',
+        secret: process.env.SESSION_SECRET,
         store: new mongoStore({
             url: process.env.DB_URL,
             ttl: (1 * 60 * 60)
