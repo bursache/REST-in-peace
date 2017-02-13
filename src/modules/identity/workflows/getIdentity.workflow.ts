@@ -8,7 +8,7 @@ export const getIdentityWorkflow = (req: any) => (
 
                 callback(null, identityData)
             } catch (err) {
-                callback(err)
+                callback({ err: err })
             }
         }
 

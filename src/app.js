@@ -575,7 +575,7 @@ exports[true] =
 	            callback(null, identityData);
 	        }
 	        catch (err) {
-	            callback(err);
+	            callback({ err: err });
 	        }
 	    });
 	    checkIdentity((err, identityData) => {
