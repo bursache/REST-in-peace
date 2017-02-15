@@ -13,7 +13,7 @@ export const decodeData = (data: string): ILoginData => {
     }
 }
 
-const loginHandler = (req: Request, res: Response) => {
+const login = (req: Request, res: Response) => {
     const requestData = req.body
 
     const decodeRequestData = (callback: Function) => {
@@ -32,7 +32,7 @@ const loginHandler = (req: Request, res: Response) => {
         callback(null, loginData)
     }
 
-    const login = async (loginData: ILoginData, callback: Function) => {
+    const loginIdentity = async (loginData: ILoginData, callback: Function) => {
         try {
             const loginInfo = await loginWorkflow(loginData, req)
 
@@ -45,7 +45,7 @@ const loginHandler = (req: Request, res: Response) => {
     steed.waterfall([
         decodeRequestData,
         validateData,
-        login
+        loginIdentity
     ], (err: Error, result: any) => {
         if (err) {
             return res.status(400).send((<IGlobal>global).httpResponseUtil(err))
@@ -55,7 +55,7 @@ const loginHandler = (req: Request, res: Response) => {
     })
 }
 
-const logoutHandler = (req: any, res: Response) => {
+const logout = (req: any, res: Response) => {
     if (req.session) {
         req.session.destroy()
     }
@@ -63,4 +63,4 @@ const logoutHandler = (req: any, res: Response) => {
     return res.status(200).send((<IGlobal>global).httpResponseUtil({ payload: {} }))
 }
 
-export {loginHandler, logoutHandler}
+export { login, logout }

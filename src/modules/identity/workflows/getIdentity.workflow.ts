@@ -1,10 +1,10 @@
-import { findIdentiyByEmail } from '../model/identity'
+import { findIdentityByEmail } from '../model/identity'
 
 export const getIdentityWorkflow = (req: any) => (
     new Promise((resolve: Function, reject: Function) => {
         const checkIdentity = async (callback: Function) => {
             try {
-                const identityData = await findIdentiyByEmail(req.session.identity.email)
+                const identityData = await findIdentityByEmail(req.session.identity.email)
 
                 callback(null, identityData)
             } catch (err) {

@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { createIdentity, findIdentiyByEmail, deleteIdentity } from '../../../../src/modules/identity/model/identity'
+import { createIdentity, findIdentityByEmail, deleteIdentity } from '../../../../src/modules/identity/model/identity'
 
 describe('identity model', () => {
     it('should create identity', (done) => {
@@ -14,7 +14,7 @@ describe('identity model', () => {
                 it('should find identity by email', (findDone) => {
                     const email = result.email
 
-                    findIdentiyByEmail(email).then((findResult) => {
+                    findIdentityByEmail(email).then((findResult) => {
                         expect(findResult).to.be.an('object')
                         expect((<any>findResult)._id.toString()).to.equal(result._id.toString())
 
@@ -25,7 +25,7 @@ describe('identity model', () => {
                 it('should not find identity by email', (findDone) => {
                     const email = 'notTraceableEmail@entity.com'
 
-                    findIdentiyByEmail(email).then((findResult) => {
+                    findIdentityByEmail(email).then((findResult) => {
                         findDone()
                     }, (err) => {
                         expect(err).to.be.an('object')

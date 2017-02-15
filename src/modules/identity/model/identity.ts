@@ -63,7 +63,7 @@ export const createIdentity = (data: IIdentity) => (
     })
 )
 
-export const findIdentiyByEmail = (email: string) => (
+export const findIdentityByEmail = (email: string) => (
     new Promise((resolve: Function, reject: Function) => {
         const query = {
             email: email.toLowerCase()
@@ -81,6 +81,26 @@ export const findIdentiyByEmail = (email: string) => (
             }
 
             resolve(result[0])
+        })
+    })
+)
+
+export const findIdentities = (callback: Function) => (
+    new Promise((resolve: Function, reject: Function) => {
+        const identityCollection = (<IGlobal>global).db.collection('identities')
+
+        const stream = identityCollection.find({}).stream()
+
+        stream.on('data', (data: any) => {
+            callback(data)
+        })
+
+        stream.on('error', (err: Error) => {
+            reject(err)
+        })
+
+        stream.once('end', () => {
+            resolve()
         })
     })
 )

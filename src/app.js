@@ -56,11 +56,11 @@ exports[true] =
 	};
 	const steed = __webpack_require__(1);
 	const httpServer_1 = __webpack_require__(2);
-	const mongoConnetor_1 = __webpack_require__(20);
-	const identity_1 = __webpack_require__(13);
-	const error_util_1 = __webpack_require__(22);
-	const logger_util_1 = __webpack_require__(24);
-	const httpResponse_util_1 = __webpack_require__(27);
+	const mongoConnetor_1 = __webpack_require__(22);
+	const identity_1 = __webpack_require__(14);
+	const error_util_1 = __webpack_require__(24);
+	const logger_util_1 = __webpack_require__(26);
+	const httpResponse_util_1 = __webpack_require__(29);
 	const restGlobal = global;
 	const initializeGlobalUtils = (callback) => {
 	    restGlobal.errorUtil = error_util_1.default;
@@ -121,11 +121,11 @@ exports[true] =
 	"use strict";
 	const express = __webpack_require__(3);
 	const bodyParser = __webpack_require__(4);
-	const helmet = __webpack_require__(29);
-	const httpServerMiddlewares = __webpack_require__(5);
-	const sessionManager_1 = __webpack_require__(6);
-	const routes_1 = __webpack_require__(9);
-	const routes_2 = __webpack_require__(17);
+	const helmet = __webpack_require__(5);
+	const httpServerMiddlewares = __webpack_require__(6);
+	const sessionManager_1 = __webpack_require__(7);
+	const routes_1 = __webpack_require__(10);
+	const routes_2 = __webpack_require__(19);
 	const serverPort = process.env.SERVER_PORT || 5050;
 	const server = express();
 	const initializeHTTPServer = () => {
@@ -164,6 +164,12 @@ exports[true] =
 
 /***/ },
 /* 5 */
+/***/ function(module, exports) {
+
+	module.exports = require("helmet");
+
+/***/ },
+/* 6 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -221,12 +227,12 @@ exports[true] =
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const expressSession = __webpack_require__(7);
-	const connectMongo = __webpack_require__(8);
+	const expressSession = __webpack_require__(8);
+	const connectMongo = __webpack_require__(9);
 	const sessionManager = (server) => {
 	    expressSession.Session.prototype.login = (identity, request, callback) => {
 	        request.session.regenerate((err) => {
@@ -260,35 +266,36 @@ exports[true] =
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = require("express-session");
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	module.exports = require("connect-mongo");
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	const express_1 = __webpack_require__(3);
-	const post_handler_1 = __webpack_require__(10);
-	const get_handler_1 = __webpack_require__(15);
+	const post_handler_1 = __webpack_require__(11);
+	const getHandler = __webpack_require__(16);
 	const routes = express_1.Router();
 	routes.get('/', (req, res) => (res.status(200).send(global.httpResponseUtil({ payload: { 'status': 'up' } }))));
 	routes.post('/identity', (req, res) => post_handler_1.postHandler(req, res));
-	routes.get('/identity', (req, res) => get_handler_1.getHandler(req, res));
+	routes.get('/identity', (req, res) => getHandler.getIdentity(req, res));
+	routes.get('/identities', (req, res) => getHandler.getIdentities(req, res));
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = routes;
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -301,8 +308,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const identityCreation_workflow_1 = __webpack_require__(11);
-	const validator_util_1 = __webpack_require__(14);
+	const identityCreation_workflow_1 = __webpack_require__(12);
+	const validator_util_1 = __webpack_require__(15);
 	exports.postHandler = (req, res) => {
 	    const requestData = req.body;
 	    const validateData = (callback) => {
@@ -333,7 +340,7 @@ exports[true] =
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -346,8 +353,8 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const bcrypt = __webpack_require__(12);
-	const identity_1 = __webpack_require__(13);
+	const bcrypt = __webpack_require__(13);
+	const identity_1 = __webpack_require__(14);
 	const salt = bcrypt.genSaltSync(10);
 	exports.encodePassword = (password) => bcrypt.hashSync(password, salt);
 	exports.createIdentityWorklow = (identityData) => (new Promise((resolve, reject) => {
@@ -359,7 +366,7 @@ exports[true] =
 	    };
 	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
-	            const foundIdentity = yield identity_1.findIdentiyByEmail(sendIdentityData.email);
+	            const foundIdentity = yield identity_1.findIdentityByEmail(sendIdentityData.email);
 	            if (foundIdentity) {
 	                return callback({ err: global.errorUtil('BadRequest') });
 	            }
@@ -397,13 +404,13 @@ exports[true] =
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("bcrypt");
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -422,6 +429,9 @@ exports[true] =
 	    new Promise((resolve, reject) => {
 	        try {
 	            global.db.createCollection('identities', {}, (err) => {
+	                if (err) {
+	                    reject(err);
+	                }
 	                global.db.command({
 	                    collMod: 'identities',
 	                    validator: {
@@ -466,7 +476,7 @@ exports[true] =
 	        });
 	    });
 	}));
-	exports.findIdentiyByEmail = (email) => (new Promise((resolve, reject) => {
+	exports.findIdentityByEmail = (email) => (new Promise((resolve, reject) => {
 	    const query = {
 	        email: email.toLowerCase()
 	    };
@@ -480,6 +490,19 @@ exports[true] =
 	            reject(global.errorUtil('NotFound'));
 	        }
 	        resolve(result[0]);
+	    });
+	}));
+	exports.findIdentities = (callback) => (new Promise((resolve, reject) => {
+	    const identityCollection = global.db.collection('identities');
+	    const stream = identityCollection.find({}).stream();
+	    stream.on('data', (data) => {
+	        callback(data);
+	    });
+	    stream.on('error', (err) => {
+	        reject(err);
+	    });
+	    stream.once('end', () => {
+	        resolve();
 	    });
 	}));
 	exports.deleteIdentity = (identityId) => (new Promise((resolve, reject) => {
@@ -498,11 +521,11 @@ exports[true] =
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const bcrypt = __webpack_require__(12);
+	const bcrypt = __webpack_require__(13);
 	const emailPattern = new RegExp(['^(([^<>()[\\]\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\.,;:\\s@\"]+)*)',
 	    '|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.',
 	    '[0-9]{1,3}\])|(([a-zA-Z\\-0-9]+\\.)+',
@@ -513,7 +536,7 @@ exports[true] =
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -526,9 +549,10 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const getIdentity_workflow_1 = __webpack_require__(16);
-	exports.getHandler = (req, res) => {
-	    const getIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
+	const getIdentity_workflow_1 = __webpack_require__(17);
+	const getIdentities_workflow_1 = __webpack_require__(18);
+	const getIdentity = (req, res) => {
+	    const getIdentityFromWorkflow = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
 	            const identity = yield getIdentity_workflow_1.getIdentityWorkflow(req);
 	            callback(null, identity);
@@ -545,7 +569,7 @@ exports[true] =
 	        callback(null, response);
 	    };
 	    steed.waterfall([
-	        getIdentity,
+	        getIdentityFromWorkflow,
 	        mapResponse
 	    ], (err, result) => {
 	        if (err) {
@@ -554,10 +578,38 @@ exports[true] =
 	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
 	    });
 	};
+	exports.getIdentity = getIdentity;
+	const getIdentities = (req, res) => {
+	    const getIdentitiesFromWorkflow = (callback) => __awaiter(this, void 0, void 0, function* () {
+	        try {
+	            yield getIdentities_workflow_1.getIdentitiesWorkflow((identity) => {
+	                const response = {
+	                    identityId: identity['_id'].toString(),
+	                    profile: identity['profile'],
+	                    email: identity['email']
+	                };
+	                res.write(JSON.stringify(response));
+	            });
+	            callback();
+	        }
+	        catch (err) {
+	            callback(err);
+	        }
+	    });
+	    steed.waterfall([
+	        getIdentitiesFromWorkflow
+	    ], (err) => {
+	        if (err) {
+	            return res.status(400).send(global.httpResponseUtil(err));
+	        }
+	        return res.status(200).end();
+	    });
+	};
+	exports.getIdentities = getIdentities;
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -569,11 +621,11 @@ exports[true] =
 	        step((generator = generator.apply(thisArg, _arguments || [])).next());
 	    });
 	};
-	const identity_1 = __webpack_require__(13);
+	const identity_1 = __webpack_require__(14);
 	exports.getIdentityWorkflow = (req) => (new Promise((resolve, reject) => {
 	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
-	            const identityData = yield identity_1.findIdentiyByEmail(req.session.identity.email);
+	            const identityData = yield identity_1.findIdentityByEmail(req.session.identity.email);
 	            callback(null, identityData);
 	        }
 	        catch (err) {
@@ -592,20 +644,6 @@ exports[true] =
 
 
 /***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	const express_1 = __webpack_require__(3);
-	const postHandler = __webpack_require__(18);
-	const routes = express_1.Router();
-	routes.post('/auth/login', (req, res) => postHandler.loginHandler(req, res));
-	routes.post('/auth/logout', (req, res) => postHandler.logoutHandler(req, res));
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = routes;
-
-
-/***/ },
 /* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -618,9 +656,48 @@ exports[true] =
 	        step((generator = generator.apply(thisArg, _arguments || [])).next());
 	    });
 	};
+	const identity_1 = __webpack_require__(14);
+	exports.getIdentitiesWorkflow = (callback) => (new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+	    try {
+	        yield identity_1.findIdentities(callback);
+	        resolve();
+	    }
+	    catch (err) {
+	        reject(err);
+	    }
+	})));
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	const express_1 = __webpack_require__(3);
+	const postHandler = __webpack_require__(20);
+	const routes = express_1.Router();
+	routes.post('/auth/login', (req, res) => postHandler.login(req, res));
+	routes.post('/auth/logout', (req, res) => postHandler.logout(req, res));
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = routes;
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+	    return new (P || (P = Promise))(function (resolve, reject) {
+	        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+	        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+	        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+	        step((generator = generator.apply(thisArg, _arguments || [])).next());
+	    });
+	};
 	const steed = __webpack_require__(1);
-	const validator_util_1 = __webpack_require__(14);
-	const login_workflow_1 = __webpack_require__(19);
+	const validator_util_1 = __webpack_require__(15);
+	const login_workflow_1 = __webpack_require__(21);
 	exports.decodeData = (data) => {
 	    const debuffedData = Buffer.from(data, 'base64').toString();
 	    const loginData = debuffedData.split(':');
@@ -629,7 +706,7 @@ exports[true] =
 	        password: loginData[1]
 	    };
 	};
-	const loginHandler = (req, res) => {
+	const login = (req, res) => {
 	    const requestData = req.body;
 	    const decodeRequestData = (callback) => {
 	        if (!requestData.up) {
@@ -643,7 +720,7 @@ exports[true] =
 	        }
 	        callback(null, loginData);
 	    };
-	    const login = (loginData, callback) => __awaiter(this, void 0, void 0, function* () {
+	    const loginIdentity = (loginData, callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
 	            const loginInfo = yield login_workflow_1.loginWorkflow(loginData, req);
 	            callback(null, loginInfo);
@@ -655,7 +732,7 @@ exports[true] =
 	    steed.waterfall([
 	        decodeRequestData,
 	        validateData,
-	        login
+	        loginIdentity
 	    ], (err, result) => {
 	        if (err) {
 	            return res.status(400).send(global.httpResponseUtil(err));
@@ -663,18 +740,18 @@ exports[true] =
 	        return res.status(200).send(global.httpResponseUtil({ payload: result }));
 	    });
 	};
-	exports.loginHandler = loginHandler;
-	const logoutHandler = (req, res) => {
+	exports.login = login;
+	const logout = (req, res) => {
 	    if (req.session) {
 	        req.session.destroy();
 	    }
 	    return res.status(200).send(global.httpResponseUtil({ payload: {} }));
 	};
-	exports.logoutHandler = logoutHandler;
+	exports.logout = logout;
 
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -687,12 +764,12 @@ exports[true] =
 	    });
 	};
 	const steed = __webpack_require__(1);
-	const identity_1 = __webpack_require__(13);
-	const validator_util_1 = __webpack_require__(14);
+	const identity_1 = __webpack_require__(14);
+	const validator_util_1 = __webpack_require__(15);
 	exports.loginWorkflow = (loginData, req) => (new Promise((resolve, reject) => {
 	    const checkIdentity = (callback) => __awaiter(this, void 0, void 0, function* () {
 	        try {
-	            const identityData = yield identity_1.findIdentiyByEmail(loginData.email);
+	            const identityData = yield identity_1.findIdentityByEmail(loginData.email);
 	            callback(null, identityData);
 	        }
 	        catch (err) {
@@ -737,11 +814,11 @@ exports[true] =
 
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const mongodb = __webpack_require__(21);
+	const mongodb = __webpack_require__(23);
 	const MongoClient = mongodb.MongoClient;
 	const mongoURL = process.env.DB_URL;
 	const initializeDatabase = () => (new Promise((resolve, reject) => {
@@ -759,24 +836,24 @@ exports[true] =
 
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports) {
 
 	module.exports = require("mongodb");
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const errors = __webpack_require__(23);
+	const errors = __webpack_require__(25);
 	const errorUtil = (errorName = 'BadRequest') => (errors[errorName]);
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = errorUtil;
 
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -795,12 +872,12 @@ exports[true] =
 	};
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const pino = __webpack_require__(25);
-	const chalk = __webpack_require__(26);
+	const pino = __webpack_require__(27);
+	const chalk = __webpack_require__(28);
 	const levels = {
 	    default: 'USERLVL',
 	    60: 'FATAL',
@@ -858,23 +935,23 @@ exports[true] =
 
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports) {
 
 	module.exports = require("pino");
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports) {
 
 	module.exports = require("chalk");
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	const jwt = __webpack_require__(28);
+	const jwt = __webpack_require__(30);
 	const httpResponse = (response) => {
 	    return jwt.sign({
 	        status: {
@@ -889,16 +966,10 @@ exports[true] =
 
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports) {
 
 	module.exports = require("jsonwebtoken");
-
-/***/ },
-/* 29 */
-/***/ function(module, exports) {
-
-	module.exports = require("helmet");
 
 /***/ }
 /******/ ]);

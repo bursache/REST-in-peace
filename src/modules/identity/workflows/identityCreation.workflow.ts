@@ -1,7 +1,7 @@
 import * as steed from 'steed'
 import * as bcrypt from 'bcrypt'
 
-import { createIdentity, findIdentiyByEmail } from '../model/identity'
+import { createIdentity, findIdentityByEmail } from '../model/identity'
 
 const salt = bcrypt.genSaltSync(10)
 export const encodePassword = (password: string): string => bcrypt.hashSync(password, salt)
@@ -19,7 +19,7 @@ export const createIdentityWorklow = (identityData: IIdentity) => (
 
         const checkIdentity = async (callback: Function) => {
             try {
-                const foundIdentity = await findIdentiyByEmail(sendIdentityData.email)
+                const foundIdentity = await findIdentityByEmail(sendIdentityData.email)
 
                 if (foundIdentity) {
                     return callback({ err: (<IGlobal>global).errorUtil('BadRequest') })

@@ -1,13 +1,13 @@
 import * as steed from 'steed'
 
-import { findIdentiyByEmail } from '../../identity/model/identity'
+import { findIdentityByEmail } from '../../identity/model/identity'
 import { passwordValidator } from '../../../utils/validator.util'
 
 export const loginWorkflow = (loginData: ILoginData, req: any) => (
     new Promise((resolve: Function, reject: Function) => {
         const checkIdentity = async (callback: Function) => {
             try {
-                const identityData = await findIdentiyByEmail(loginData.email)
+                const identityData = await findIdentityByEmail(loginData.email)
 
                 callback(null, identityData)
             } catch (err) {
