@@ -11,6 +11,7 @@ routes.get('/', (req: Request, res: Response) =>
 )
 
 routes.post('/identity',  (req: Request, res: Response) => postHandler(req, res))
+
 routes.get('/identity', (req: Request, res: Response) => getHandler(req, res))
 
 export default routes

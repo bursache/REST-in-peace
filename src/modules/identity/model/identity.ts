@@ -7,6 +7,10 @@ export const identityCollectionValidation = async () => {
     new Promise((resolve: Function, reject: Function) => {
         try {
             (<IGlobal>global).db.createCollection('identities', {}, (err: Error) => {
+                if (err) {
+                    reject(err)
+                }
+
                 (<IGlobal>global).db.command({
                     collMod: 'identities',
                     validator: {
