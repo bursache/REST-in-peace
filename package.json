@@ -15,9 +15,11 @@
     "npm": ">=3.10.8"
   },
   "contributors": [{
-    "name": "Bogdan Ursache"
+    "name": "Bogdan Ursache",
+    "url": "https://github.com/bursache"
   }, {
-    "name": "Paul Isache"
+    "name": "Paul Isache",
+    "url": "https://github.com/Paul-Isache"
   }],
   "license": "ISC",
   "dependencies": {
