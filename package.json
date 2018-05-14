@@ -14,7 +14,11 @@
     "node": ">=6.9.0",
     "npm": ">=3.10.8"
   },
-  "author": "Thinslices",
+  "contributors": [{
+    "name": "Bogdan Ursache"
+  }, {
+    "name": "Paul Isache"
+  }],
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^1.0.2",
