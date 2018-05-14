@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express-serve-static-core'
+import { Response, NextFunction } from 'express-serve-static-core'
 
 const allowCrossDomain = (req: any, res: Response, next: NextFunction) => {
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*')
