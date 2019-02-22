@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import { decodeData } from '../../../../src/modules/auth/handlers/post.handler'
 
 describe('post auth handler', () => {
-    it('should decode data', (done) => {
+    it('should decode data', (done: any) => {
         const requestData = {
             up: 'dmFzaWxlQGlvbi5jb206cGFyb2xhMTIz'
         }

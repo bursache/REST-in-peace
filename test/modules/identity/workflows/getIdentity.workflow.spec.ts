@@ -6,17 +6,17 @@ import * as identityCreation from '../../../../src/modules/identity/workflows/id
 import * as getIdentity from '../../../../src/modules/identity/workflows/getIdentity.workflow'
 
 describe('getIdentity', () => {
-    it('should encrypt password', (done) => {
+    it('should encrypt password', (done: any) => {
         const mockPassword = 'test'
         const hash = identityCreation.encodePassword(mockPassword)
 
-        bcrypt.compare(mockPassword, hash, function (err, res) {
+        bcrypt.compare(mockPassword, hash, (err: any, res: any) => {
             expect(res).to.equal(true)
             done()
         })
     })
 
-    it('should create identity', (done) => {
+    it('should create identity', (done: any) => {
         const mockIdentity = {
             email: `testUser+${Math.floor((Math.random() * 100) + 1)}@test.com`,
             password: '12345678'
@@ -24,7 +24,7 @@ describe('getIdentity', () => {
 
         identityCreation.createIdentityWorklow(mockIdentity).then((newIdentity: any) => {
             describe('nested create identity', () => {
-                it('should be able to retrieve identity', (identityDone) => {
+                it('should be able to retrieve identity', (identityDone: any) => {
                     const mockRequest = {
                         session: {
                             identity: {
@@ -33,16 +33,16 @@ describe('getIdentity', () => {
                         }
                     }
 
-                    getIdentity.getIdentityWorkflow(mockRequest).then((findResult) => {
+                    getIdentity.getIdentityWorkflow(mockRequest).then(() => {
                         identityDone()
-                    }, (err) => {
+                    }, (err: any) => {
                         expect(err).to.be.an('object')
                         expect(err.err).to.have.property('errorMessage')
                         identityDone()
                     })
                 })
 
-                it('should not be able to retrieve identity', (identityDone) => {
+                it('should not be able to retrieve identity', (identityDone: any) => {
                     const mockRequest = {
                         session: {
                             identity: {
@@ -51,19 +51,19 @@ describe('getIdentity', () => {
                         }
                     }
 
-                    getIdentity.getIdentityWorkflow(mockRequest).then((findResult) => {
+                    getIdentity.getIdentityWorkflow(mockRequest).then(() => {
                         identityDone()
-                    }, (err) => {
+                    }, (err: any) => {
                         expect(err).to.be.an('object')
                         expect(err.err).to.have.property('errorMessage')
                         identityDone()
                     })
                 })
 
-                it('should delete identity', (deleteDone) => {
+                it('should delete identity', (deleteDone: any) => {
                     const identityId = newIdentity._id
 
-                    deleteIdentity(identityId).then((deleteResult) => {
+                    deleteIdentity(identityId).then((deleteResult: any) => {
                         expect(deleteResult).to.equal(identityId)
 
                         deleteDone()

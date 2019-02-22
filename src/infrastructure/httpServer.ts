@@ -3,7 +3,7 @@ import * as bodyParser from 'body-parser'
 import * as helmet from 'helmet'
 
 import * as httpServerMiddlewares from '../infrastructure/middlewares'
-import { sessionManager } from '../infrastructure/sessionManager'
+import { sessionManager } from './sessionManager'
 import identityRoutes from '../modules/identity/routes'
 import authRoutes from '../modules/auth/routes'
 
