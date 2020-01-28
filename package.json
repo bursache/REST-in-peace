@@ -33,7 +33,7 @@
     "helmet": "^3.4.0",
     "jsonwebtoken": "^8.0.0",
     "mongodb": "^2.2.22",
-    "mongoose": "^4.7.8",
+    "mongoose": "^5.8.10",
     "pino": "^3.2.0",
     "steed": "^1.1.3"
   },
